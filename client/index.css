@@ -1,0 +1,44 @@
+#board {
+    border-radius: 1%;
+    width: 320px;
+    height: 320px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    background-color: #17a2b8;
+    padding: 10px;
+}
+
+.board-cell {
+    border-radius: 7%;
+    width: 50px;
+    min-height: 50px;
+    margin: 5px;
+    padding: 5px;
+    background-color: white;
+    color: black;
+    font-size: xx-large;
+    text-align: center;
+}
+
+#submit-word {
+    color: white;
+}
+
+#found-words-container {
+    /* height: 320px; */
+    height: 150px;
+    width: 250px;
+}
+
+#top-space {
+    height: 50px;
+}
+
+#found-words {
+    list-style-type: none;
+    padding: 0px;
+}
+
+.scrollable {
+    overflow-y: auto;
+}
