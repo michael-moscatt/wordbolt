@@ -44,7 +44,11 @@ $(function () {
     socket.emit('pull');
   });
 
-  $("#load-word-list").click(function(){
-    socket.emit('load word list');
+  $("#save-board").click(function(){
+    socket.emit('save board');
+  });
+
+  $("#load-board").click(function(){
+    socket.emit('load board');
   });
 });

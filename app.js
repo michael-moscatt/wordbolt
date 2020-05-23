@@ -13,6 +13,10 @@ var fs = require('fs');
 
 var users = {}; // socketID -> user
 var board = [];
+solution = [];
+tree = {};
+
+buildTree('twl2.txt');
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, '/client/index.html')));
 
@@ -35,7 +39,7 @@ io.on('connection', function (socket) {
     });
 
     socket.on('start game', function() {
-        startGame();
+        runGame();
     });
 
     socket.on('pull', function() {
@@ -46,13 +50,12 @@ io.on('connection', function (socket) {
         users[socket.id].wordList = list;
     });
 
-    socket.on('load word list', function (list) {
-        fs.readFile('server/twl.txt', "utf8", function (err, data) {
-            var words = data.split("\n");
-            words.forEach(function (word) {
-                console.log(word);
-            });
-        })
+    socket.on('save board', function(list){
+        saveBoard('board1');
+    });
+
+    socket.on('load board', function(list){
+        loadBoard('board1');
     });
 });
 
@@ -100,7 +103,10 @@ function createUser(username, socket){
     var user = {
         username: username,
         socket: socket,
-        wordList: empty
+        wordList: empty,
+        score: 0,
+        cumScore: 0,
+        wins: 0
     };
     return user;
 }
@@ -120,7 +126,7 @@ function broadcastLobbyNames() {
 }
 
 // Start the game. Broadcast board, reset wordlists
-function startGame() {
+function runGame() {
     board = generateBoardArray(STANDARD_DICE);
     Object.keys(users).forEach(function(socketID){
         user = users[socketID];
@@ -128,6 +134,11 @@ function startGame() {
         user.socket.emit('board', board);
         user.wordList = [];
     });
+    solution = generateSolution(board);
+    console.log("SOLUTION:");
+    var sortedList = sortLengthAlpha(solution);
+    sortedList.forEach(word => console.log(word));
+    console.log("Solution length is %i", sortedList.length);
 }
 
 // Generates an array of letters given the set
@@ -166,6 +177,203 @@ function checkWords(){
     });
 }
 
+// Generate tree from wordlist
+function buildTree(filename){
+    fs.readFile('server/' + filename, "utf8", function (err, data) {
+        var words = data.split("\n");
+        words.pop(); // remove blank word from trailing newline
+        var prefix = '';
+        var  i;
+        for(i = 0; i < words.length; i++){
+            var word = words[i];
+            if(word.substring(0,4) === prefix) {
+                buildTreeHelperSameRoot(tree[word.substring(0,4)], word, 4);
+            } else {
+                prefix = word.substring(0,4);
+                tree[prefix] = {};
+                if(word.length == 4){
+                    tree[prefix].word = true;
+                } else {
+                    tree[prefix].word = false;
+                    tree[prefix][word[4]] = buildTreeHelper(word, 4);
+                }
+            }
+        
+        }
+        console.log("Tree Built.");
+        // str = JSON.stringify(tree, null, 4);
+        // console.log(str);
+    })
+}
+
+function buildTreeHelper(word, index){
+    var suffix = new Object();
+    if(index >= word.length - 1){
+        suffix['word'] = true;
+        return suffix;
+    } else {
+        suffix['word'] = false;
+        suffix[word[index + 1]] = buildTreeHelper(word, index + 1);
+        return suffix;
+    }
+}
+
+function buildTreeHelperSameRoot(section, word, index){
+    if(word[index] in section){
+        buildTreeHelperSameRoot(section[word[index]], word, index + 1)
+    } else{
+        section[word[index]] = buildTreeHelper(word, index);
+    }
+}
+
+// Generates all legal words for the given board
+function generateSolution(board){
+    var i;
+    for(i = 0; i < board.length; i++){
+        var visitedIndices = [i];
+        var string = board[i];
+        generateSolutionHelper(i, visitedIndices, string);
+    }
+    return solution;
+}
+
+function generateSolutionHelper(currentIndex, visited, string){
+    console.log("---execution of helper for %s---", string)
+    if(string.length > 3){
+        if(string.length == 4 && !tree.hasOwnProperty(string.substring(0,4))){
+            console.log("Root %s unfound", string);
+            return false;
+        }
+        var rootSection = tree[string.substring(0, 4)];
+        var i;
+        for(i = 3; i < string.length; i++){
+            console.log("started iteration through word %s", string);
+            if(i == string.length - 1){
+                console.log("Reached end of word %s", string);
+                if(rootSection['word'] == true && !solution.includes(string)){
+                    solution.push(string);
+                    console.log("Pushed %s to solution", string);
+                }
+                if(Object.keys(rootSection).length == 1){
+                    console.log("No more words spellable with this stem: %s", string);
+                    return false;
+                }
+            } else{
+                if(!rootSection.hasOwnProperty(string[i + 1])){
+                    console.log("No rootsection: %s", string);
+                    return false;
+                }
+                rootSection = rootSection[string[i + 1]];
+            }
+        }
+    }
+
+    indices = nextInds(currentIndex, visited);
+
+    console.log("Generated next indices for %s", string);
+    console.log(JSON.stringify(indices));
+
+    indices.forEach(function(nextIndex){
+        console.log("Exploring index %i", nextIndex);
+        var updatedVisited = Array.from(visited);
+        updatedVisited.push(nextIndex);
+        generateSolutionHelper(nextIndex, updatedVisited, string + board[nextIndex]);
+    });
+}
+
+// Finds the indices that must be visited next
+function nextInds(current, visited){
+    var upperLeft = [1, 6, 5];
+    var upperRight = [9, 8, 3];
+    var lowerRight = [19, 23, 18];
+    var lowerLeft = [15, 16, 21];
+    var indices = [];
+    if(current == 0){
+        indices = upperLeft;
+    } else if(current == 4){
+        indices = upperRight;
+    } else if(current == 24){
+        indices = lowerRight;
+    } else if(current == 20){
+        indices = lowerLeft;
+    } else if(current < 4){
+        indices = [current + 1, current + 6, current + 5, current + 4, current - 1];
+    } else if((current + 1) % 5 == 0){
+        indices = [current - 5, current + 5, current + 4, current - 1, current - 6];
+    } else if(current > 20){
+        indices = [current - 5, current - 4, current + 1, current - 1, current - 6];
+    } else if(current % 5 == 0){
+        indices = [current - 5, current - 4, current + 1, current + 6, current  + 5];
+    } else {
+        indices = [current - 5, current - 4, current + 1, current + 6, current  + 5, current + 4, current - 1, current - 6];
+    }
+    visited.forEach(function(visitedIndex){
+        if(indices.includes(visitedIndex)){
+            const removeIndex = indices.indexOf(visitedIndex);
+            indices.splice(removeIndex, 1);
+        }
+    });
+    return indices;
+}
+
+function saveBoard(filename){
+    fs.writeFile('server/' + filename, JSON.stringify(board),
+        function (err) {
+            if (err)
+                console.log(err);
+            else
+                console.log('Write operation complete.');
+        }
+    );
+}
+
+function loadBoard(filename){
+    fs.readFile('server/' + filename, "utf8", function (err, data) {
+        console.log("DATA:");
+        console.log(data);
+        board = JSON.parse(data);
+        console.log("Printing board");
+        console.log(board);
+
+        Object.keys(users).forEach(function (socketID) {
+            user = users[socketID];
+            console.log("Broadcasting board to: %s", user.username);
+            user.socket.emit('board', board);
+            user.wordList = [];
+        });
+
+        solution = generateSolution(board);
+        console.log("SOLUTION:");
+        var sortedList = sortLengthAlpha(solution);
+        sortedList.forEach(word => console.log(word));
+        console.log("Solution length is %i", sortedList.length);
+    });
+}
+
+function sortLengthAlpha(list){
+    sortedList = [];
+    var longest = 0;
+    list.forEach(function(word){
+        if(word.length > longest){
+            longest = word.length;
+        }
+    });
+    var i;
+    for(i = longest; i > 3; i--){
+        var listAtThisLetter = [];
+        list.forEach(function(word){
+            if(word.length == i){
+                listAtThisLetter.push(word);
+            }
+        });
+        listAtThisLetter.sort();
+        listAtThisLetter.forEach(function(word){
+            sortedList.push(word);
+        });
+    }
+    return sortedList;
+}
+
 // Check username, if unique broadcasts names to lobby
 // function usernameSubmission(socket, username) {
 //     if (checkUniqueUser(username)) {
@@ -196,8 +404,9 @@ function checkWords(){
 //         var words = data.split("\r\n");
 //         words.forEach(function (word) {
 //             if (word.length > 3) {
-//                 string = string + word + '\n';
-//                 console.log("Pushed %s", word);
+//                 var wordUpper = word.toUpperCase();
+//                 string = string + wordUpper + '\n';
+//                 console.log("Pushed %s", wordUpper);
 //             }
 //         });
 //         fs.writeFile('server/twl2.txt', string,
