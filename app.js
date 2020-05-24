@@ -120,7 +120,6 @@ function broadcastLobbyNames() {
     });
     Object.keys(users).forEach(function(socketID){
         user = users[socketID];
-        console.log("Broadcasting names to: %s", user.username);
         user.socket.emit('lobby names', usernames);
     });
 }
@@ -128,9 +127,9 @@ function broadcastLobbyNames() {
 // Start the game. Broadcast board, reset wordlists
 function runGame() {
     board = generateBoardArray(STANDARD_DICE);
+    console.log("Broadcasting board", user.username);
     Object.keys(users).forEach(function(socketID){
         user = users[socketID];
-        console.log("Broadcasting board to: %s", user.username);
         user.socket.emit('board', board);
         user.wordList = [];
     });
@@ -162,18 +161,56 @@ function endRound(){
     console.log("Requesting words");
     Object.keys(users).forEach(function(socketID){
         user = users[socketID];
-        console.log("Requesting words from: %s", user.username);
         user.socket.emit('send words');
     });
-    setTimeout(checkWords, 500);
+    setTimeout(generateResult, 500);
 }
 
-// Checks words from players
-function checkWords(){
+// Generates the result of the round
+function generateResult(){
     console.log("Checking Words");
+    var result = {};
+    var pooledFoundWords = [];
+    // Add legal words found by players
     Object.keys(users).forEach(function(socketID){
         user = users[socketID];
-        user.wordList.forEach(word => console.log(word));
+        user.wordList.forEach(function(word){
+            if(solution.includes(word)){
+                pooledFoundWords.push(word);
+            }
+        });
+    });
+    // Generate result for each player
+    Object.keys(users).forEach(function(socketID){
+        user = users[socketID];
+        result[user.username] = [];
+        user.wordList.forEach(function(word){
+            if(solution.includes(word)){
+                var count = 0;
+                for (var i = 0; i < pooledFoundWords.length; i++) {
+                    if (pooledFoundWords[i] == word){
+                        count++;
+                    }
+                }
+                if(count > 1){
+                    result[user.username].push([word, "canceled"]);
+                }
+                else{
+                    result[user.username].push([word, "unqiue"]);
+                }
+            }
+            else{
+                result[user.username].push([word, "wrong"]);
+            }
+        });
+    });
+    // console.log("RESULT:")
+    // str = JSON.stringify(result, null, 4);
+    // console.log(str);
+    console.log("Broadcasting result");
+    Object.keys(users).forEach(function(socketID){
+        user = users[socketID];
+        user.socket.emit('result', result);
     });
 }
 
@@ -228,6 +265,7 @@ function buildTreeHelperSameRoot(section, word, index){
 
 // Generates all legal words for the given board
 function generateSolution(board){
+    solution = [];
     var i;
     for(i = 0; i < board.length; i++){
         var visitedIndices = [i];
