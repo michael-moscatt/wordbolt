@@ -1,11 +1,11 @@
 #board {
-    border-radius: 1%;
+    border-radius: 1.5%;
     width: 320px;
     height: 320px;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-    background-color: #17a2b8;
     padding: 10px;
+    background: #92DCE5;
 }
 
 .board-cell {
@@ -21,13 +21,13 @@
 }
 
 #submit-word {
-    color: white;
+    background: #4B88A2;
+    color: rgb(255, 255, 255);
 }
 
 #found-words-container {
-    /* height: 320px; */
-    height: 150px;
-    width: 250px;
+    height: 320px;
+    max-width: 300px;
 }
 
 #top-space {
@@ -41,4 +41,30 @@
 
 .scrollable {
     overflow-y: auto;
+}
+
+.selected {
+    background: #1751B8;
+}
+
+.info-row {
+    min-height: 20px;
+}
+
+#word-submission-container {
+    max-width: 320px;
+}
+
+.delete-word {
+    background: pink;
+}
+
+.score {
+    background: lightblue;
+}
+
+#player-result {
+    max-width: 200px;
+    height: 300px;
+    margin: 0px;
 }

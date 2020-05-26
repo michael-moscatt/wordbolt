@@ -16,6 +16,8 @@ var board = [];
 solution = [];
 tree = {};
 
+ROUND_LENGTH = 30;
+
 buildTree('twl2.txt');
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, '/client/index.html')));
@@ -29,7 +31,8 @@ io.on('connection', function (socket) {
     // Assign random name and create new user
     name = randomName();
     socket.emit('name', name);
-    users[socket.id] = createUser(name, socket);
+    var user = createUser(name, socket);
+    users[socket.id] = user;
     broadcastLobbyNames();
 
     socket.on('disconnect', function() {
@@ -38,8 +41,13 @@ io.on('connection', function (socket) {
         broadcastLobbyNames();
     });
 
-    socket.on('start game', function() {
-        runGame();
+    socket.on('username', function(username){
+        user.username = username;
+        broadcastLobbyNames();
+    });
+
+    socket.on('start round', function() {
+        startRound();
     });
 
     socket.on('pull', function() {
@@ -124,8 +132,8 @@ function broadcastLobbyNames() {
     });
 }
 
-// Start the game. Broadcast board, reset wordlists
-function runGame() {
+// Start the round: Broadcast board, reset wordlists
+function startRound() {
     board = generateBoardArray(STANDARD_DICE);
     console.log("Broadcasting board", user.username);
     Object.keys(users).forEach(function(socketID){
@@ -138,6 +146,20 @@ function runGame() {
     var sortedList = sortLengthAlpha(solution);
     sortedList.forEach(word => console.log(word));
     console.log("Solution length is %i", sortedList.length);
+
+    var time = ROUND_LENGTH;
+    var timer = setInterval(function() {
+        console.log("Timer ticked: %i",time);
+        time = time - 1;
+        Object.keys(users).forEach(function(socketID){
+            user = users[socketID];
+            user.socket.emit('time', time);
+        });
+        if(time == 0){
+            endRound();
+            clearInterval(timer);
+        }
+      }, 1000);
 }
 
 // Generates an array of letters given the set
@@ -169,7 +191,7 @@ function endRound(){
 // Generates the result of the round
 function generateResult(){
     console.log("Checking Words");
-    var result = {};
+    var result = [];
     var pooledFoundWords = [];
     // Add legal words found by players
     Object.keys(users).forEach(function(socketID){
@@ -183,7 +205,11 @@ function generateResult(){
     // Generate result for each player
     Object.keys(users).forEach(function(socketID){
         user = users[socketID];
-        result[user.username] = [];
+        var userResult = new Object();
+        var score = 0;
+        userResult['name'] = user.username;
+        userResult['words'] = [];
+        userResult['wordVals'] = [];
         user.wordList.forEach(function(word){
             if(solution.includes(word)){
                 var count = 0;
@@ -193,25 +219,51 @@ function generateResult(){
                     }
                 }
                 if(count > 1){
-                    result[user.username].push([word, "canceled"]);
+                    userResult['wordVals'].push(0);
                 }
                 else{
-                    result[user.username].push([word, "unqiue"]);
+                    var wordVal = 0;
+                    if(word.length <= 4){
+                        wordVal = 1;
+                    } else if (word.length == 5){
+                        wordVal = 2;
+                    } else if (word.length == 6){
+                        wordVal = 3;
+                    } else if (word.length == 7){
+                        wordVal = 5;
+                    } else if (word.length >= 8){
+                        wordVal = 11;
+                    }
+                    score = score + wordVal;
+                    userResult['wordVals'].push(wordVal);
                 }
             }
             else{
-                result[user.username].push([word, "wrong"]);
+                score = score - 1;
+                userResult['wordVals'].push(-1);
             }
+            userResult['words'].push(word);
         });
+        userResult['score'] = score;
+        result.push(userResult);
     });
-    // console.log("RESULT:")
-    // str = JSON.stringify(result, null, 4);
-    // console.log(str);
+    result.sort(function(a, b){
+        if ( a.score > b.score ){
+            return -1;
+          }
+          if ( a.score < b.score ){
+            return 1;
+          }
+          return 0;
+    });
     console.log("Broadcasting result");
     Object.keys(users).forEach(function(socketID){
         user = users[socketID];
         user.socket.emit('result', result);
     });
+    console.log("RESULT:")
+    str = JSON.stringify(result, null, 4);
+    console.log(str);
 }
 
 // Generate tree from wordlist

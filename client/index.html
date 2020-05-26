@@ -33,65 +33,100 @@
     <div class="container">
         <div class="row">
             <div class="col-12" id="top-space">
-                <button id="start-game">Start</button>
                 <button id="pull">Pull</button>
                 <button id="save-board">Save Board</button>
                 <button id="load-board">Load Board</button>
             </div>
         </div>
         <div class="row">
-            <div class="col-4">
-                <div class="m-3" id="board-container">
-                    <div id="board">
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                        <div class="board-cell"></div>
-                    </div>
+            <div class="col-5" id="board-container">
+                <div id="board">
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
+                    <div class="board-cell"></div>
                 </div>
-                <div class="m-3" id="word-submission-container">
+                <div class="mt-3" id="word-submission-container">
                     <div class="input-group mb-3">
-                        <input type="text" class="form-control" placeholder="WORD" id="word">
+                        <input type="text" class="form-control" placeholder="WORD" id="word"
+                            oninput="this.value = this.value.toUpperCase()">
                         <div class="input-group-append">
-                            <button class="btn btn-info btn-outline-secondary" type="button" id="submit-word">Submit</button>
+                            <button class="btn btn-outline-secondary" type="button" id="submit-word">Submit</button>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-4">
-                <div class="card bg-info text-white mt-3 mx-auto" style="max-width: 300px" id="found-words-container">
-                    <div class="card-header text-center">
-                        Words
+            <div class="col-4" id="found-words-container">
+                <div class="card bg-light mx-auto">
+                    <div class="card-header text-center" id="timer">
+                        3:00
                     </div>
-                    <div class="card-body scrollable">
+                    <div class="card-body overflow-auto" style="height: 262px">
                         <ol class="m-0" id="found-words">
                         </ol>
                     </div>
                 </div>
             </div>
-            <div class="col-4">
-                <div class="card bg-info text-white mt-3 mx-auto" style="max-width: 300px">
+            
+            <div class="col-8" id="start-game-container">
+                <div class="card card-body bg-light mx-auto text-center">
+                    <button type="button" class="btn btn-primary mx-auto" style="max-width: 150px" id="start-game">Start
+                        Game</button>
+                </div>
+            </div>
+            
+            <div class="col-3" id="post-game-container">
+                <div>
+                    Game Over
+                </div>
+            </div>
+            <div class="col-3" id="post-game-container2">
+                <div>
+                    Game Over
+                </div>
+            </div>
+            <div class="col-3" id="post-game-container3">
+                <div>
+                    Game Over
+                </div>
+            </div>
+            
+            <div class="col-3">
+                <div class="card bg-light mx-auto" id="singleplayer-score-card" style="max-width: 300px">
+                    <div class="card-header text-center">
+                        Singleplayer
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="info-row"><span class="float-left">High Score</span><span class="float-right">0</span></div>
+                        <br>
+                        <div class="info-row"><span class="float-left">Most Words</span><span class="float-right">0</span></div>
+                    </div>
+                </div>
+                <div class="card bg-light mx-auto" id="multiplayer-score-card" style="max-width: 300px">
+                    <div class="card-header text-center">
+                        Multiplayer
+                    </div>
                     <div class="card-body">
                         <table id="users">
                             <thead>
@@ -107,13 +142,19 @@
                         </table>
                     </div>
                 </div>
-                <div class="card bg-info text-white mt-5 mx-auto" style="max-width: 300px">
+                <div class="card bg-light mx-auto mt-3" style="max-width: 300px">
                     <div class="card-header text-center">
                         User
-                    </div>
+                    </div>  
                     <div class="card-body">
-                        <input class="my-3" type="text" name="username" id="username" required><br>
-                    </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="basic-addon1">@</span>
+                            </div>
+                            <input type="text" class="form-control" placeholder="Username" aria-label="Username"
+                                aria-describedby="basic-addon1" id="username">
+                        </div>
+                    </div>  
                 </div>
             </div>
         </div>
