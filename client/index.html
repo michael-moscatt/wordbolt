@@ -32,83 +32,65 @@
 <body>
     <div class="container">
         <div class="row">
-            <div class="col-12" id="top-space">
+            <div class="col-12" id="debug-buttons">
                 <button id="pull">Pull</button>
                 <button id="save-board">Save Board</button>
                 <button id="load-board">Load Board</button>
             </div>
         </div>
         <div class="row">
-            <div class="col-5" id="board-container">
-                <div id="board">
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
-                    <div class="board-cell"></div>
+            <div class="col-12" id="top-space">
+            </div>
+        </div>
+        <div class="row">
+
+            <div class="col-9" id="pre-game-container">
+                <div class="card card-body bg-light mx-auto text-center">
+                    <button type="button" class="btn btn-primary mx-auto" style="max-width: 150px" id="start-game">Start Game</button>
                 </div>
-                <div class="mt-3" id="word-submission-container">
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control" placeholder="WORD" id="word"
-                            oninput="this.value = this.value.toUpperCase()">
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-secondary" type="button" id="submit-word">Submit</button>
+            </div>
+
+            <div class="col-9" id="in-game-container">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-6">
+                            <div id="board">
+                            </div>
+                            <div class="m-3 text-center" id="error-container">
+                            </div>
+                            <div class="input-group" id="word-submission-container">
+                                <input type="text" class="form-control" placeholder="WORD" id="word"
+                                    oninput="this.value = this.value.toUpperCase()">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="button" id="submit-word">Submit</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card bg-light mx-auto" id="found-words-container">
+                                <div class="card-header text-center" id="timer">
+                                    3:00
+                                </div>
+                                <div class="card-body overflow-auto" style="height: 262px">
+                                    <ol class="m-0" id="found-words">
+                                    </ol>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-4" id="found-words-container">
-                <div class="card bg-light mx-auto">
-                    <div class="card-header text-center" id="timer">
-                        3:00
+            </div>          
+
+            <div class="col-9" id="post-game-container">
+                <div class="container">
+                    <div class="row d-flex justify-content-center">
+                        <div class="col-4" id="result-col-1">
+                        </div>
+                        <div class="col-4" id="result-col-2">
+                        </div>
+                        <div class="col-4" id="result-col-3">
+                        </div>
                     </div>
-                    <div class="card-body overflow-auto" style="height: 262px">
-                        <ol class="m-0" id="found-words">
-                        </ol>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-8" id="start-game-container">
-                <div class="card card-body bg-light mx-auto text-center">
-                    <button type="button" class="btn btn-primary mx-auto" style="max-width: 150px" id="start-game">Start
-                        Game</button>
-                </div>
-            </div>
-            
-            <div class="col-3" id="post-game-container">
-                <div>
-                    Game Over
-                </div>
-            </div>
-            <div class="col-3" id="post-game-container2">
-                <div>
-                    Game Over
-                </div>
-            </div>
-            <div class="col-3" id="post-game-container3">
-                <div>
-                    Game Over
                 </div>
             </div>
             
@@ -160,5 +142,4 @@
         </div>
     </div>
 </body>
-
 </html>

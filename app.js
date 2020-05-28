@@ -16,7 +16,7 @@ var board = [];
 solution = [];
 tree = {};
 
-ROUND_LENGTH = 30;
+ROUND_LENGTH = 180;
 
 buildTree('twl2.txt');
 

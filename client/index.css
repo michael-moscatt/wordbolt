@@ -27,7 +27,7 @@
 
 #found-words-container {
     height: 320px;
-    max-width: 300px;
+    max-width: 250px;
 }
 
 #top-space {
@@ -37,14 +37,6 @@
 #found-words {
     list-style-type: none;
     padding: 0px;
-}
-
-.scrollable {
-    overflow-y: auto;
-}
-
-.selected {
-    background: #1751B8;
 }
 
 .info-row {
@@ -59,12 +51,27 @@
     background: pink;
 }
 
-.score {
-    background: lightblue;
+.total-score {
+    background: skyblue;
 }
 
-#player-result {
+.score {
+    background: lightblue;
+    min-width: 21px;
+}
+
+.player-result {
     max-width: 200px;
     height: 300px;
     margin: 0px;
+}
+
+.player-result ol {
+    list-style-type: none;
+    padding: 0px;
+}
+
+#error-container {
+    min-height: 30px;
+    color: darkred;
 }

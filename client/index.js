@@ -1,6 +1,6 @@
 $(function () {
   var socket = io();
-  var roundTime = 60;
+  var debug = true;
 
   socket.on('name', function (name) {
     console.log(name + " is the assigned name.");
@@ -82,30 +82,40 @@ $(function () {
   // Add a word to the word list
   function submitWord(){
     var word = $("#word").val();
-    // Determine if word is legal
-
     $("#word").val('');
     $("#word").focus();
-    $("#found-words").prepend('<li><span class="word">' + word + '</span><span class="float-right badge delete-word">&#10005</span></li>');
+    if(word.length < 4){
+      document.getElementById('error-container').innerHTML = "Words must be at least four letters long";
+    } else if(isDuplicate(word)){
+      document.getElementById('error-container').innerHTML = "Word already found";
+    } else {
+      document.getElementById('error-container').innerHTML = "";
+      $(document).on("click", "#found-words .delete-word", function () {
+        $that = $(this);
+        $that.parent().remove();
+      });
+      $("#found-words").prepend('<li><span class="word">' + word + '</span><span class="float-right badge delete-word">&#10005</span></li>');
+    }
+  }
 
-    $(document).on("click", "#found-words .delete-word", function () {
-      $that = $(this);
-      $that.parent().remove();
+  // Checks if the given word is a duplicate
+  function isDuplicate(word){
+    var wordList = [];
+    $('#found-words').find('.word').each(function () {
+      wordList.push($(this).text());
     });
-
-    console.log("Added word '" + word + "'")
+    return wordList.includes(word);
   }
 
   // Set up the page as it should be before the game starts
   function setWaitMode(){
-    document.getElementById("found-words-container").style.display = "none";
-    document.getElementById("board-container").style.display = "none";
+    document.getElementById("in-game-container").style.display = "none";
     document.getElementById("post-game-container").style.display = "none";
-
-    //temp
-    document.getElementById("post-game-container").style.display = "none";
-    document.getElementById("post-game-container2").style.display = "none";
-    document.getElementById("post-game-container3").style.display = "none";
+    if(debug){
+      document.getElementById("debug-buttons").style.display = "block";
+    } else {
+      document.getElementById("debug-buttons").style.display = "none";
+    }
   }
 
   // Set elements visible needed for playing a round, clear any words from last round
@@ -113,33 +123,48 @@ $(function () {
     $('#board div').remove();
     document.getElementById("found-words").innerHTML = "";
     board.forEach(letter => $('#board').append('<div class="board-cell">' + letter + '</div>'));
-    document.getElementById("start-game-container").style.display = "none";
+    document.getElementById("pre-game-container").style.display = "none";
     document.getElementById("post-game-container").style.display = "none";
-    document.getElementById("found-words-container").style.display = "block";
-    document.getElementById("board-container").style.display = "block";
+    document.getElementById("in-game-container").style.display = "block";
   }
 
   // Ends the round by displaying the result
   function endRound(result){
-    var container = $('#post-game-container');
-    container.empty();
-    result.forEach(function(player){
-      var player_card = $($.parseHTML('<div class="card bg-light" id="player-result"><div class="card-header"><h5 class="m-1">' + player.name
-      + '<span class="float-right badge score">' + player.score + '</span></h5></div><div class="card-body"></div></div>'));
-      container.append(player_card);
-      // var listLength = player['words'].length;
-      // for(var i = 0; i < listLength; i++){
-      // }
-    });
+    document.getElementById("result-col-1").style.display = "none";
+    document.getElementById("result-col-2").style.display = "none";
+    document.getElementById("result-col-3").style.display = "none";
+    var columns = [document.getElementById('result-col-1'), document.getElementById('result-col-2'), document.getElementById('result-col-3')];
+    for(var i = 0; i < 3; i++){
+      columns[i].innerHTML = "";
+    }
+    for(var i = 0; i < result.length; i++){
+      var player = result[i];
+      var player_card = document.createElement('div');
+      player_card.classList.add("card", "bg-light", "player-result");
+      var header = document.createElement('div');
+      header.classList.add("card-header");
+      var header_content = document.createElement('h5');
+      header_content.classList.add("m-1");
+      header_content.innerHTML = player.name + '<span class="float-right badge badge-pill total-score">' + player.score + '</span>';
+      header.appendChild(header_content);
+      var body = document.createElement('div');
+      body.classList.add("card-body", "overflow-auto");
+      var playerWordsHtml = ['<ol>']
+      for(var  j = 0; j < player['words'].length; j++){
+        var val = player['wordVals'][j];
+        var word = player['words'][j];
+        playerWordsHtml.push('<li>' + word + '<span class="float-right badge score">' + val + '</span></li>');
+      }
+      playerWordsHtml.push('</ol>')
+      body.innerHTML = playerWordsHtml.join('');
+      player_card.appendChild(header);
+      player_card.appendChild(body);
+      columns[i % 3].append(player_card);
+      columns[i % 3].style.display = "block";
+    }
+    document.getElementById("pre-game-container").style.display = "block";
+    document.getElementById("in-game-container").style.display = "none";
     document.getElementById("post-game-container").style.display = "block";
-    document.getElementById("start-game-container").style.display = "none";
-    document.getElementById("found-words-container").style.display = "none";
-    document.getElementById("board-container").style.display = "none";
-
-    //temp
-    document.getElementById("post-game-container").style.display = "block";
-    document.getElementById("post-game-container2").style.display = "block";
-    document.getElementById("post-game-container3").style.display = "block";
   }
 
   // Buttons
@@ -159,9 +184,4 @@ $(function () {
   $("#load-board").click(function(){
     socket.emit('load board');
   });
-
-  $("#remove-word").click(function(){
-    $('#found-words > .selected').remove();
-  });
-
 });
