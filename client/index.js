@@ -85,9 +85,10 @@ $(function () {
     $("#word").val('');
     $("#word").focus();
     if(word.length < 4){
-      document.getElementById('error-container').innerHTML = "Words must be at least four letters long";
+      throwError("Words must be at least four letters long");
+
     } else if(isDuplicate(word)){
-      document.getElementById('error-container').innerHTML = "Word already found";
+      throwError("Word already found");
     } else {
       document.getElementById('error-container').innerHTML = "";
       $(document).on("click", "#found-words .delete-word", function () {
@@ -105,6 +106,15 @@ $(function () {
       wordList.push($(this).text());
     });
     return wordList.includes(word);
+  }
+
+  // Throws the given error message, clears after 3 seconds
+  function throwError(message){
+    document.getElementById('error-container').innerHTML = message;
+    setTimeout(
+      function() {
+        document.getElementById('error-container').innerHTML = "";
+      }, 3000);
   }
 
   // Set up the page as it should be before the game starts
