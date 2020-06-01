@@ -8,7 +8,6 @@ const port = 3000;
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 
-var session = require('express-session');
 var fs = require('fs');
 
 var users = {}; // socketID -> user
@@ -17,7 +16,6 @@ solution = [];
 tree = {};
 
 ROUND_LENGTH = 180;
-
 buildTree('twl2.txt');
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, '/client/index.html')));
@@ -29,11 +27,11 @@ app.use(express.static(path.join(__dirname, 'client')));
 io.on('connection', function (socket) {
     console.log('Connection established');
     // Assign random name and create new user
-    name = randomName();
-    socket.emit('name', name);
-    var user = createUser(name, socket);
-    users[socket.id] = user;
-    broadcastLobbyNames();
+    // name = randomName();
+    // socket.emit('name', name);
+    // var user = createUser(name, socket);
+    // users[socket.id] = user;
+    // broadcastLobbyNames();
 
     socket.on('disconnect', function() {
         console.log('Disconnection');
