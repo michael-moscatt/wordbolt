@@ -1,11 +1,18 @@
+const ANIMALS = ['cat','dog','fish'];
+const ADJECTIVES = ['big','small','friendly'];
+
 $(function () {
   var socket = io();
   var debug = true;
 
-  socket.on('name', function (name) {
-    console.log(name + " is the assigned name.");
-    $('#username').val(name);
-  });
+  // Set page into 'wait' mode
+  setWaitMode();
+
+  // Inform the server of the name of the room
+  socket.emit('room-name', window.location.pathname.split("/").pop());
+
+  // Assign newly connected user a random name
+  setName(randomName);
 
   socket.on('lobby names', function (usernames) {
     $('#users tbody tr').remove();
@@ -49,8 +56,16 @@ $(function () {
     endRound(result);
   });
 
-  // Set page into 'wait' mode
-  setWaitMode();
+  // Sets the name of the user
+  function setName(name){
+    socket.emit("username", name);
+    $('#username').val(name);
+  }
+
+  // Generates a random name for the user
+  function randomName() {
+    return ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)] + "-" + ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
+  }
 
   // Submit button submits word
   document.getElementById("submit-word").addEventListener("click", function(){
@@ -72,9 +87,9 @@ $(function () {
       event.preventDefault();
       document.getElementById("start-game").focus();
     } else {
-      var username = document.getElementById("username").value;
-      if (!username == "") {
-        socket.emit("username", username);
+      var name = document.getElementById("username").value;
+      if (!name == "") {
+        socket.emit("username", name);
       }
     }
   });

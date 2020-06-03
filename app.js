@@ -10,66 +10,11 @@ var io = require('socket.io')(http);
 
 var fs = require('fs');
 
-var users = {}; // socketID -> user
+var rooms = {}; // roomName -> room
 var board = [];
 solution = [];
 tree = {};
 
-ROUND_LENGTH = 180;
-buildTree('twl2.txt');
-
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, '/client/index.html')));
-
-app.get('/lobby', (req, res) => res.sendFile(path.join(__dirname, '/client/lobby.html')));
-
-app.use(express.static(path.join(__dirname, 'client')));
-
-io.on('connection', function (socket) {
-    console.log('Connection established');
-    // Assign random name and create new user
-    // name = randomName();
-    // socket.emit('name', name);
-    // var user = createUser(name, socket);
-    // users[socket.id] = user;
-    // broadcastLobbyNames();
-
-    socket.on('disconnect', function() {
-        console.log('Disconnection');
-        delete users[socket.id];
-        broadcastLobbyNames();
-    });
-
-    socket.on('username', function(username){
-        user.username = username;
-        broadcastLobbyNames();
-    });
-
-    socket.on('start round', function() {
-        startRound();
-    });
-
-    socket.on('pull', function() {
-        endRound();
-    });
-
-    socket.on('word list', function(list){
-        users[socket.id].wordList = list;
-    });
-
-    socket.on('save board', function(list){
-        saveBoard('board1');
-    });
-
-    socket.on('load board', function(list){
-        loadBoard('board1');
-    });
-});
-
-http.listen(3000, function() {
-    console.log('Server running. Port: ' + port);
-});
-
-// dice sets
 const STANDARD_DICE = [
     ['A','E','D','N','N','N'],
     ['H','O','R','D','L','N'],
@@ -98,16 +43,75 @@ const STANDARD_DICE = [
     ['F','A','R','S','I','Y']
 ]
 
-function randomName(){
-    const animals = ['cat','dog','fish'];
-    const descriptors = ['big','small','friendly'];
-    return descriptors[Math.floor(Math.random() * descriptors.length)] + "-" + animals[Math.floor(Math.random() * animals.length)];
-}
+const ROUND_LENGTH = 180;
 
-function createUser(username, socket){
+buildTree('twl2.txt');
+
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, '/client/index.html')));
+
+app.get(/\/room\/.+/, (req, res) => res.sendFile(path.join(__dirname, '/client/room.html')));
+
+app.use(express.static(path.join(__dirname, 'client')));
+
+io.on('connection', function (socket) {
+    console.log('Connection established');
+
+    var currentRoom;
+    var user = createUser(socket);
+    var inRoom = false;
+
+    socket.on('room-name', function(roomName){
+        if(!rooms.hasOwnProperty(roomName)){
+            rooms[roomName] = {'users':[]}
+        }
+        rooms[roomName]['users'].push(user);
+        currentRoom = rooms[roomName];
+        inRoom = true;
+    });
+
+    socket.on('disconnect', function() {
+        if(inRoom){
+            currentRoom[users] = currentRoom[users].filter(function (user) {
+                return !user['socket'] === socket;
+            });
+            broadcastLobbyNames(currentRoom);
+        }
+    });
+
+    socket.on('username', function(username){
+        user.username = username;
+        broadcastLobbyNames(currentRoom);
+    });
+
+    socket.on('start round', function() {
+        startRound();
+    });
+
+    socket.on('pull', function() {
+        endRound();
+    });
+
+    socket.on('word list', function(list){
+        users[socket.id].wordList = list;
+    });
+
+    socket.on('save board', function(list){
+        saveBoard('board1');
+    });
+
+    socket.on('load board', function(list){
+        loadBoard('board1');
+    });
+});
+
+http.listen(3000, function() {
+    console.log('Server running. Port: ' + port);
+});
+
+function createUser(socket){
     var empty = [];
     var user = {
-        username: username,
+        username: false,
         socket: socket,
         wordList: empty,
         score: 0,
@@ -117,15 +121,14 @@ function createUser(username, socket){
     return user;
 }
 
-// broadcasts names to all users in lobby
-function broadcastLobbyNames() {
+// broadcasts names to all users in the lobby
+function broadcastLobbyNames(lobby) {
     console.log("Broadcasting lobby names");
     var usernames = [];
-    Object.values(users).forEach(function(user){
+    lobby['users'].forEach(function(user){
         usernames.push(user.username);
     });
-    Object.keys(users).forEach(function(socketID){
-        user = users[socketID];
+    lobby['users'].forEach(function(user){
         user.socket.emit('lobby names', usernames);
     });
 }
