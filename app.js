@@ -87,8 +87,10 @@ io.on('connection', function (socket) {
     });
 
     socket.on('username', function(username){
-        user.username = username;
-        broadcastScorecard(room);
+        if(username.length <= 16) {
+            user.username = username;
+            broadcastScorecard(room);
+        }
     });
 
     socket.on('start-round', function() {

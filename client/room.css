@@ -40,9 +40,17 @@
     padding: 0px;
 }
 
+#users {
+    table-layout: fixed;
+}
+
 .info-row {
+    height: 20px;
+}
+
+.player-info-row {
+    height: 40px;
     border-top: 1px solid lightgray;
-    min-height: 20px;
 }
 
 #word-submission-container {

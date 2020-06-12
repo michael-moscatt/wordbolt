@@ -44,13 +44,13 @@
         </div>
         <div class="row">
 
-            <div class="col-9" id="pre-game-container">
+            <div class="col-8" id="pre-game-container">
                 <div class="card card-body bg-light mx-auto text-center">
                     <button type="button" class="btn btn-primary mx-auto" style="max-width: 150px" id="start-game">Start Game</button>
                 </div>
             </div>
 
-            <div class="col-9" id="in-game-container">
+            <div class="col-8" id="in-game-container">
                 <div class="container">
                     <div class="row">
                         <div class="col-6">
@@ -81,7 +81,7 @@
                 </div>
             </div>          
 
-            <div class="col-9" id="post-game-container">
+            <div class="col-8" id="post-game-container">
                 <div class="container">
                     <div class="row d-flex justify-content-center">
                         <div class="col-4" id="result-col-1">
@@ -94,20 +94,15 @@
                 </div>
             </div>
             
-            <div class="col-3">
-                <div class="card bg-light mx-auto" id="singleplayer-score-card" style="max-width: 300px; display: none">
-                    <div class="card-body p-3">
-                        <div class="info-row"><span class="float-left">High Score</span><span class="float-right">0</span></div>
-                    </div>
-                </div>
-                <div class="card bg-light mx-auto" id="multiplayer-score-card" style="display: none">
+            <div class="col-4">
+                <div class="card bg-light mx-auto" id="multiplayer-score-card">
                     <div class="card-body">
                         <table id="users" style="width: 100%">
                             <thead>
                                 <tr>
-                                    <th>Wins</th>
+                                    <th style="width: 65px">Wins</th>
                                     <th>Name</th>
-                                    <th>Best</th>
+                                    <th style="width: 65px">Best</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -115,7 +110,7 @@
                         </table>
                     </div>
                 </div>
-                <div class="card bg-light mx-auto mt-3" style="max-width: 300px">
+                <div class="card bg-light mx-auto mt-3">
                     <div class="card-header text-center">
                         User
                     </div>  
@@ -125,9 +120,12 @@
                                 <span class="input-group-text" id="basic-addon1">@</span>
                             </div>
                             <input type="text" class="form-control" placeholder="Username" aria-label="Username"
-                                aria-describedby="basic-addon1" id="username">
+                                aria-describedby="basic-addon1" id="username" maxlength="16">
                         </div>
-                    </div>  
+                        <div id="singleplayer-score-card">
+                            <div class="info-row"><span class="float-left">High Score</span><span class="float-right">0</span></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

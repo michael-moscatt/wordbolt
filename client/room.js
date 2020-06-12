@@ -23,7 +23,7 @@ $(function () {
       tableBody.innerHTML = "";
       scorecard.forEach(function(userInfo){
         var row = document.createElement('tr');
-        row.classList.add("info-row");
+        row.classList.add("player-info-row");
         row.innerHTML = '<td>' + userInfo.wins + '</td><td>' + userInfo.username + '</td><td>' + userInfo.highScore + '</td>';
         tableBody.appendChild(row);
       });
