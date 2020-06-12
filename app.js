@@ -9,10 +9,10 @@ var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 
 var fs = require('fs');
+var util = require('util');
+// console.log(util.inspect(OBJECT));
 
 var rooms = {}; // roomName -> room
-var board = [];
-solution = [];
 tree = {};
 
 const STANDARD_DICE = [
@@ -54,54 +54,61 @@ app.get(/\/room\/.+/, (req, res) => res.sendFile(path.join(__dirname, '/client/r
 app.use(express.static(path.join(__dirname, 'client')));
 
 io.on('connection', function (socket) {
-    console.log('Connection established');
-
-    var currentRoom;
+    var room;
     var user = createUser(socket);
-    var inRoom = false;
 
     socket.on('room-name', function(roomName){
+        console.log("User has joined room '%s'", roomName);
         if(!rooms.hasOwnProperty(roomName)){
-            rooms[roomName] = {'users':[]}
+            rooms[roomName] = {
+                'users': [user],
+                'name': roomName,
+                'state': 'ready',
+                'board': [],
+                'timer': false,
+                'solution': []
+            };
         }
-        rooms[roomName]['users'].push(user);
-        currentRoom = rooms[roomName];
-        inRoom = true;
+        room = rooms[roomName];
     });
 
     socket.on('disconnect', function() {
-        if(inRoom){
-            currentRoom[users] = currentRoom[users].filter(function (user) {
-                return !user['socket'] === socket;
-            });
-            broadcastLobbyNames(currentRoom);
-        }
+        console.log("'%s' has left room '%s'", user.username, room.name);
+        room['users'] = room['users'].filter(function (oneUser) {
+            return oneUser !== user;
+        });
+        broadcastRoomNames(room);
     });
 
     socket.on('username', function(username){
         user.username = username;
-        broadcastLobbyNames(currentRoom);
+        broadcastRoomNames(room);
     });
 
-    socket.on('start round', function() {
-        startRound();
+    socket.on('start-round', function() {
+        if(room.state == 'ready'){
+            room.state = 'playing';
+            startRound(room);
+        }
     });
+
+    socket.on('found-words', function(list){
+        user.wordList = list;
+    });
+
+    // DEBUG
 
     socket.on('pull', function() {
-        endRound();
+        endRound(room);
     });
 
-    socket.on('word list', function(list){
-        users[socket.id].wordList = list;
-    });
+    // socket.on('save board', function(list){
+    //     saveBoard('board1');
+    // });
 
-    socket.on('save board', function(list){
-        saveBoard('board1');
-    });
-
-    socket.on('load board', function(list){
-        loadBoard('board1');
-    });
+    // socket.on('load board', function(list){
+    //     loadBoard('board1');
+    // });
 });
 
 http.listen(3000, function() {
@@ -121,44 +128,36 @@ function createUser(socket){
     return user;
 }
 
-// broadcasts names to all users in the lobby
-function broadcastLobbyNames(lobby) {
-    console.log("Broadcasting lobby names");
+// Broadcasts names to all users in the room
+function broadcastRoomNames(room) {
+    console.log("Broadcasting names in room '%s'", room.name);
     var usernames = [];
-    lobby['users'].forEach(function(user){
+    room['users'].forEach(function(user){
         usernames.push(user.username);
     });
-    lobby['users'].forEach(function(user){
-        user.socket.emit('lobby names', usernames);
+    room['users'].forEach(function(user){
+        user.socket.emit('room-names', usernames);
     });
 }
 
-// Start the round: Broadcast board, reset wordlists
-function startRound() {
+// Start the round for the given room: Broadcasts board, resets wordlists
+function startRound(room) {
+    console.log("Room '%s': Round started", room.name);
+    var board = room.board;
     board = generateBoardArray(STANDARD_DICE);
-    console.log("Broadcasting board", user.username);
-    Object.keys(users).forEach(function(socketID){
-        user = users[socketID];
+    room['users'].forEach(function(user){
         user.socket.emit('board', board);
         user.wordList = [];
     });
-    solution = generateSolution(board);
-    console.log("SOLUTION:");
-    var sortedList = sortLengthAlpha(solution);
-    sortedList.forEach(word => console.log(word));
-    console.log("Solution length is %i", sortedList.length);
-
+    room.solution = generateSolution(board);
     var time = ROUND_LENGTH;
-    var timer = setInterval(function() {
-        console.log("Timer ticked: %i",time);
+    room.timer = setInterval(function() {
         time = time - 1;
-        Object.keys(users).forEach(function(socketID){
-            user = users[socketID];
+        room['users'].forEach(function(user){
             user.socket.emit('time', time);
         });
         if(time == 0){
-            endRound();
-            clearInterval(timer);
+            endRound(room);
         }
       }, 1000);
 }
@@ -174,29 +173,27 @@ function generateBoardArray(diceSet) {
         letters[i] = letters[randInd];
         letters[randInd] = holdVal;
     }
-    console.log("Board generated.");
     return letters;
 }
 
-// Ends a round of the game
-function endRound(){
+// Ends a round of the game for the given room
+function endRound(room){
+    console.log("Room '%s': Round ended", room.name);
+    clearInterval(room.timer);
     // Asks all players for their word list
-    console.log("Requesting words");
-    Object.keys(users).forEach(function(socketID){
-        user = users[socketID];
-        user.socket.emit('send words');
+    room['users'].forEach(function(user){
+        user.socket.emit('send-words');
     });
-    setTimeout(generateResult, 500);
+    setTimeout(generateResult, 500, room);
 }
 
-// Generates the result of the round
-function generateResult(){
-    console.log("Checking Words");
+// Generates the result of the round for the given room
+function generateResult(room){
+    console.log("Room '%s': Result generated", room.name);
     var result = [];
     var pooledFoundWords = [];
     // Add legal words found by players
-    Object.keys(users).forEach(function(socketID){
-        user = users[socketID];
+    room['users'].forEach(function(user){
         user.wordList.forEach(function(word){
             if(solution.includes(word)){
                 pooledFoundWords.push(word);
@@ -204,15 +201,14 @@ function generateResult(){
         });
     });
     // Generate result for each player
-    Object.keys(users).forEach(function(socketID){
-        user = users[socketID];
+    room['users'].forEach(function(user){
         var userResult = new Object();
         var score = 0;
         userResult['name'] = user.username;
         userResult['words'] = [];
         userResult['wordVals'] = [];
         user.wordList.forEach(function(word){
-            if(solution.includes(word)){
+            if(room['solution'].includes(word)){
                 var count = 0;
                 for (var i = 0; i < pooledFoundWords.length; i++) {
                     if (pooledFoundWords[i] == word){
@@ -257,14 +253,12 @@ function generateResult(){
           }
           return 0;
     });
-    console.log("Broadcasting result");
-    Object.keys(users).forEach(function(socketID){
-        user = users[socketID];
+    room['users'].forEach(function(user){
         user.socket.emit('result', result);
     });
-    console.log("RESULT:")
-    str = JSON.stringify(result, null, 4);
-    console.log(str);
+    console.log("Room %s result:", room.name);
+    console.log(JSON.stringify(result, null, 4));
+    room.state = 'ready';
 }
 
 // Generate tree from wordlist
@@ -323,35 +317,35 @@ function generateSolution(board){
     for(i = 0; i < board.length; i++){
         var visitedIndices = [i];
         var string = board[i];
-        generateSolutionHelper(i, visitedIndices, string);
+        generateSolutionHelper(i, visitedIndices, string, board);
     }
     return solution;
 }
 
-function generateSolutionHelper(currentIndex, visited, string){
-    console.log("---execution of helper for %s---", string)
+function generateSolutionHelper(currentIndex, visited, string, board){
+    // console.log("---execution of helper for %s---", string)
     if(string.length > 3){
         if(string.length == 4 && !tree.hasOwnProperty(string.substring(0,4))){
-            console.log("Root %s unfound", string);
+            // console.log("Root %s unfound", string);
             return false;
         }
         var rootSection = tree[string.substring(0, 4)];
         var i;
         for(i = 3; i < string.length; i++){
-            console.log("started iteration through word %s", string);
+            // console.log("started iteration through word %s", string);
             if(i == string.length - 1){
-                console.log("Reached end of word %s", string);
+                // console.log("Reached end of word %s", string);
                 if(rootSection['word'] == true && !solution.includes(string)){
                     solution.push(string);
-                    console.log("Pushed %s to solution", string);
+                    // console.log("Pushed %s to solution", string);
                 }
                 if(Object.keys(rootSection).length == 1){
-                    console.log("No more words spellable with this stem: %s", string);
+                    // console.log("No more words spellable with this stem: %s", string);
                     return false;
                 }
             } else{
                 if(!rootSection.hasOwnProperty(string[i + 1])){
-                    console.log("No rootsection: %s", string);
+                    // console.log("No rootsection: %s", string);
                     return false;
                 }
                 rootSection = rootSection[string[i + 1]];
@@ -361,14 +355,15 @@ function generateSolutionHelper(currentIndex, visited, string){
 
     indices = nextInds(currentIndex, visited);
 
-    console.log("Generated next indices for %s", string);
-    console.log(JSON.stringify(indices));
+    // console.log("Generated next indices for %s", string);
+    // console.log(JSON.stringify(indices));
 
     indices.forEach(function(nextIndex){
-        console.log("Exploring index %i", nextIndex);
+        // console.log("Exploring index %i", nextIndex);
+        // console.log(JSON.stringify(board, null, 4));
         var updatedVisited = Array.from(visited);
         updatedVisited.push(nextIndex);
-        generateSolutionHelper(nextIndex, updatedVisited, string + board[nextIndex]);
+        generateSolutionHelper(nextIndex, updatedVisited, string + board[nextIndex], board);
     });
 }
 
@@ -407,63 +402,63 @@ function nextInds(current, visited){
     return indices;
 }
 
-function saveBoard(filename){
-    fs.writeFile('server/' + filename, JSON.stringify(board),
-        function (err) {
-            if (err)
-                console.log(err);
-            else
-                console.log('Write operation complete.');
-        }
-    );
-}
+// function saveBoard(filename){
+//     fs.writeFile('server/' + filename, JSON.stringify(board),
+//         function (err) {
+//             if (err)
+//                 console.log(err);
+//             else
+//                 console.log('Write operation complete.');
+//         }
+//     );
+// }
 
-function loadBoard(filename){
-    fs.readFile('server/' + filename, "utf8", function (err, data) {
-        console.log("DATA:");
-        console.log(data);
-        board = JSON.parse(data);
-        console.log("Printing board");
-        console.log(board);
+// function loadBoard(filename){
+//     fs.readFile('server/' + filename, "utf8", function (err, data) {
+//         console.log("DATA:");
+//         console.log(data);
+//         board = JSON.parse(data);
+//         console.log("Printing board");
+//         console.log(board);
 
-        Object.keys(users).forEach(function (socketID) {
-            user = users[socketID];
-            console.log("Broadcasting board to: %s", user.username);
-            user.socket.emit('board', board);
-            user.wordList = [];
-        });
+//         Object.keys(users).forEach(function (socketID) {
+//             user = users[socketID];
+//             console.log("Broadcasting board to: %s", user.username);
+//             user.socket.emit('board', board);
+//             user.wordList = [];
+//         });
 
-        solution = generateSolution(board);
-        console.log("SOLUTION:");
-        var sortedList = sortLengthAlpha(solution);
-        sortedList.forEach(word => console.log(word));
-        console.log("Solution length is %i", sortedList.length);
-    });
-}
+//         solution = generateSolution(board);
+//         console.log("SOLUTION:");
+//         var sortedList = sortLengthAlpha(solution);
+//         sortedList.forEach(word => console.log(word));
+//         console.log("Solution length is %i", sortedList.length);
+//     });
+// }
 
-function sortLengthAlpha(list){
-    sortedList = [];
-    var longest = 0;
-    list.forEach(function(word){
-        if(word.length > longest){
-            longest = word.length;
-        }
-    });
-    var i;
-    for(i = longest; i > 3; i--){
-        var listAtThisLetter = [];
-        list.forEach(function(word){
-            if(word.length == i){
-                listAtThisLetter.push(word);
-            }
-        });
-        listAtThisLetter.sort();
-        listAtThisLetter.forEach(function(word){
-            sortedList.push(word);
-        });
-    }
-    return sortedList;
-}
+// function sortLengthAlpha(list){
+//     sortedList = [];
+//     var longest = 0;
+//     list.forEach(function(word){
+//         if(word.length > longest){
+//             longest = word.length;
+//         }
+//     });
+//     var i;
+//     for(i = longest; i > 3; i--){
+//         var listAtThisLetter = [];
+//         list.forEach(function(word){
+//             if(word.length == i){
+//                 listAtThisLetter.push(word);
+//             }
+//         });
+//         listAtThisLetter.sort();
+//         listAtThisLetter.forEach(function(word){
+//             sortedList.push(word);
+//         });
+//     }
+//     return sortedList;
+// }
 
 // Check username, if unique broadcasts names to lobby
 // function usernameSubmission(socket, username) {

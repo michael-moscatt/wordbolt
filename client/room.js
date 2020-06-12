@@ -12,9 +12,9 @@ $(function () {
   socket.emit('room-name', window.location.pathname.split("/").pop());
 
   // Assign newly connected user a random name
-  setName(randomName);
+  setName(randomName());
 
-  socket.on('lobby names', function (usernames) {
+  socket.on('room-names', function (usernames) {
     $('#users tbody tr').remove();
     usernames.forEach(username => $('#users > tbody').append('<tr><td>' + username + '</td></tr>'));
     // Determine if single or multiplayer mode
@@ -42,13 +42,13 @@ $(function () {
     document.getElementById("timer").innerHTML = timerVal
   });
 
-  socket.on('send words', function (board) {
+  socket.on('send-words', function (board) {
     console.log("Sending word list");
     var wordList = [];
     $('#found-words').find('.word').each(function () {
       wordList.push($(this).text());
     });
-    socket.emit('word list', wordList);
+    socket.emit('found-words', wordList);
   });
 
   socket.on('result', function (result) {
@@ -195,7 +195,7 @@ $(function () {
   // Buttons
   $("#start-game").click(function(){
     console.log("Starting round");
-    socket.emit('start round');
+    socket.emit('start-round');
   });
 
   $("#pull").click(function(){
