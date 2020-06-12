@@ -27,6 +27,18 @@ $(function () {
     }
   });
 
+  socket.on('game-state', function (state){
+    console.log("Received game state");
+    switch(state){
+      case 'ready':
+        setWaitMode();
+        break;
+      case 'playing':
+        socket.emit('request-board');
+        break;
+    }
+  });
+
   socket.on('board', function (board) {
     console.log("Received board");
     startRound(board);

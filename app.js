@@ -58,10 +58,10 @@ io.on('connection', function (socket) {
     var user = createUser(socket);
 
     socket.on('room-name', function(roomName){
-        console.log("User has joined room '%s'", roomName);
         if(!rooms.hasOwnProperty(roomName)){
+            console.log("Room '%s': created", roomName);
             rooms[roomName] = {
-                'users': [user],
+                'users': [],
                 'name': roomName,
                 'state': 'ready',
                 'board': [],
@@ -70,6 +70,9 @@ io.on('connection', function (socket) {
             };
         }
         room = rooms[roomName];
+        room['users'].push(user);
+        socket.emit('game-state', room.state);
+        console.log("User has joined room '%s'", roomName);
     });
 
     socket.on('disconnect', function() {
@@ -89,6 +92,12 @@ io.on('connection', function (socket) {
         if(room.state == 'ready'){
             room.state = 'playing';
             startRound(room);
+        }
+    });
+
+    socket.on('request-board', function() {
+        if(room.state == 'playing'){
+            socket.emit('board', room.board);
         }
     });
 
@@ -130,7 +139,6 @@ function createUser(socket){
 
 // Broadcasts names to all users in the room
 function broadcastRoomNames(room) {
-    console.log("Broadcasting names in room '%s'", room.name);
     var usernames = [];
     room['users'].forEach(function(user){
         usernames.push(user.username);
@@ -143,14 +151,18 @@ function broadcastRoomNames(room) {
 // Start the round for the given room: Broadcasts board, resets wordlists
 function startRound(room) {
     console.log("Room '%s': Round started", room.name);
-    var board = room.board;
-    board = generateBoardArray(STANDARD_DICE);
+    room.board = generateBoardArray(STANDARD_DICE);
     room['users'].forEach(function(user){
-        user.socket.emit('board', board);
+        user.socket.emit('board', room.board);
         user.wordList = [];
     });
-    room.solution = generateSolution(board);
+
+    room.solution = generateSolution(room.board);
     var time = ROUND_LENGTH;
+    room['users'].forEach(function(user){
+        user.socket.emit('time', time);
+    });
+
     room.timer = setInterval(function() {
         time = time - 1;
         room['users'].forEach(function(user){
@@ -189,7 +201,6 @@ function endRound(room){
 
 // Generates the result of the round for the given room
 function generateResult(room){
-    console.log("Room '%s': Result generated", room.name);
     var result = [];
     var pooledFoundWords = [];
     // Add legal words found by players
@@ -256,9 +267,8 @@ function generateResult(room){
     room['users'].forEach(function(user){
         user.socket.emit('result', result);
     });
-    console.log("Room %s result:", room.name);
-    console.log(JSON.stringify(result, null, 4));
     room.state = 'ready';
+    console.log("Room '%s': Result generated", room.name);
 }
 
 // Generate tree from wordlist
