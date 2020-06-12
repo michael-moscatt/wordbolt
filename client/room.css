@@ -41,6 +41,7 @@
 }
 
 .info-row {
+    border-top: 1px solid lightgray;
     min-height: 20px;
 }
 
@@ -50,6 +51,7 @@
 }
 
 .delete-word {
+    cursor: pointer;
     background: pink;
 }
 

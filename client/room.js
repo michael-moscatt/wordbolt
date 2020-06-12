@@ -14,16 +14,29 @@ $(function () {
   // Assign newly connected user a random name
   setName(randomName());
 
-  socket.on('room-names', function (usernames) {
-    $('#users tbody tr').remove();
-    usernames.forEach(username => $('#users > tbody').append('<tr><td>' + username + '</td></tr>'));
+  socket.on('scorecard', function (scorecard) {
     // Determine if single or multiplayer mode
-    if(usernames.length > 1){
-      document.getElementById("singleplayer-score-card").style.display = "none";
-      document.getElementById("multiplayer-score-card").style.display = "block";
+    var singleplayerSC = document.getElementById("singleplayer-score-card");
+    var multiplayerSC = document.getElementById("multiplayer-score-card");
+    if(scorecard.length > 1){
+      var tableBody = multiplayerSC.querySelector('tbody');
+      tableBody.innerHTML = "";
+      scorecard.forEach(function(userInfo){
+        var row = document.createElement('tr');
+        row.classList.add("info-row");
+        row.innerHTML = '<td>' + userInfo.wins + '</td><td>' + userInfo.username + '</td><td>' + userInfo.highScore + '</td>';
+        tableBody.appendChild(row);
+      });
+      singleplayerSC.style.display = "none";
+      multiplayerSC.style.display = "block";
     } else {
-      document.getElementById("singleplayer-score-card").style.display = "block";
-      document.getElementById("multiplayer-score-card").style.display = "none";
+      var SCRow = document.createElement('div');
+      SCRow.classList.add("info-row");
+      SCRow.innerHTML = '<span class="float-left">High Score</span><span class="float-right">' + scorecard[0].highScore + '</span>';
+      singleplayerSC.innerHTML = "";
+      singleplayerSC.appendChild(SCRow);
+      singleplayerSC.style.display = "block";
+      multiplayerSC.style.display = "none";
     }
   });
 
@@ -122,7 +135,7 @@ $(function () {
         $that = $(this);
         $that.parent().remove();
       });
-      $("#found-words").prepend('<li><span class="word">' + word + '</span><span class="float-right badge delete-word">&#10005</span></li>');
+      $("#found-words").prepend('<li><span class="word">' + word + '</span><span class="float-right badge delete-word" onmouseover="">&#10005</span></li>');
     }
   }
 

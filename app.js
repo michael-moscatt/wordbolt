@@ -80,12 +80,15 @@ io.on('connection', function (socket) {
         room['users'] = room['users'].filter(function (oneUser) {
             return oneUser !== user;
         });
-        broadcastRoomNames(room);
+        if(room['users'].length < 1){
+            delete rooms[room.name];
+        }
+        broadcastScorecard(room);
     });
 
     socket.on('username', function(username){
         user.username = username;
-        broadcastRoomNames(room);
+        broadcastScorecard(room);
     });
 
     socket.on('start-round', function() {
@@ -131,20 +134,34 @@ function createUser(socket){
         socket: socket,
         wordList: empty,
         score: 0,
-        cumScore: 0,
+        highScore: 0,
         wins: 0
     };
     return user;
 }
 
-// Broadcasts names to all users in the room
-function broadcastRoomNames(room) {
-    var usernames = [];
+// Broadcasts names & scoring to users in the room
+function broadcastScorecard(room) {
+    scorecard = [];
     room['users'].forEach(function(user){
-        usernames.push(user.username);
+        var user = {
+            'username': user.username,
+            'highScore': user.highScore,
+            'wins': user.wins
+        }
+        scorecard.push(user);
+    });
+    scorecard.sort(function(a, b){
+        if ( a.wins > b.wins ){
+            return -1;
+          }
+          if ( a.wins < b.wins ){
+            return 1;
+          }
+          return 0;
     });
     room['users'].forEach(function(user){
-        user.socket.emit('room-names', usernames);
+        user.socket.emit('scorecard', scorecard);
     });
 }
 
@@ -201,6 +218,7 @@ function endRound(room){
 
 // Generates the result of the round for the given room
 function generateResult(room){
+    var winningScore = 0;
     var result = [];
     var pooledFoundWords = [];
     // Add legal words found by players
@@ -253,6 +271,9 @@ function generateResult(room){
             userResult['words'].push(word);
         });
         userResult['score'] = score;
+        user.score = score;
+        user.highScore = Math.max(user.highScore, score);
+        winningScore = Math.max(winningScore, score);
         result.push(userResult);
     });
     result.sort(function(a, b){
@@ -266,8 +287,12 @@ function generateResult(room){
     });
     room['users'].forEach(function(user){
         user.socket.emit('result', result);
+        if(result.length > 1 && user.score == winningScore){
+            user.wins++;
+        }
     });
     room.state = 'ready';
+    broadcastScorecard(room);
     console.log("Room '%s': Result generated", room.name);
 }
 
