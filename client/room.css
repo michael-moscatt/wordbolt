@@ -21,11 +21,6 @@
     text-align: center;
 }
 
-#submit-word {
-    background: #4B88A2;
-    color: rgb(255, 255, 255);
-}
-
 #found-words-container {
     height: 320px;
     max-width: 250px;
@@ -33,6 +28,10 @@
 
 #top-space {
     height: 50px;
+}
+
+#timer {
+    font-size: x-large;
 }
 
 #found-words {

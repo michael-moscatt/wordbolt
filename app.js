@@ -62,17 +62,24 @@ io.on('connection', function (socket) {
             console.log("Room '%s': created", roomName);
             rooms[roomName] = {
                 'users': [],
+                'host': user,
                 'name': roomName,
                 'state': 'ready',
                 'board': [],
                 'timer': false,
+                'time': false,
                 'solution': []
             };
         }
         room = rooms[roomName];
         room['users'].push(user);
-        socket.emit('game-state', room.state);
         console.log("User has joined room '%s'", roomName);
+        // Get user up to speed who joins mid-round
+        if(room.state == 'playing' || room.state == 'paused'){
+            socket.emit('game-state', room.state);
+            socket.emit('board', room.board);
+            user.socket.emit('time', room.time);
+        }
     });
 
     socket.on('disconnect', function() {
@@ -110,11 +117,29 @@ io.on('connection', function (socket) {
         user.wordList = list;
     });
 
-    // DEBUG
-
-    socket.on('pull', function() {
+    socket.on('end-round', function() {
         endRound(room);
     });
+
+    socket.on('pause-round', function() {
+        if(room.state == 'playing'){
+            console.log("Room '%s': round paused", room.name);
+            room.state = 'paused';
+            broadcastGameState(room);
+            clearInterval(room.timer);
+        }
+    });
+
+    socket.on('resume-round', function() {
+        if(room.state == 'paused'){
+            console.log("Room '%s': round resumed", room.name);
+            room.state = 'playing';
+            broadcastGameState(room);
+            room.timer = setInterval(timerTick, 1000, room);
+        }
+    });
+
+    // DEBUG
 
     // socket.on('save board', function(list){
     //     saveBoard('board1');
@@ -177,20 +202,21 @@ function startRound(room) {
     });
 
     room.solution = generateSolution(room.board);
-    var time = ROUND_LENGTH;
+    room.time = ROUND_LENGTH;
     room['users'].forEach(function(user){
-        user.socket.emit('time', time);
+        user.socket.emit('time', room.time);
     });
+    room.timer = setInterval(timerTick, 1000, room);
+}
 
-    room.timer = setInterval(function() {
-        time = time - 1;
-        room['users'].forEach(function(user){
-            user.socket.emit('time', time);
-        });
-        if(time == 0){
-            endRound(room);
-        }
-      }, 1000);
+function timerTick(room){
+    room.time--;
+    room['users'].forEach(function (user) {
+        user.socket.emit('time', room.time);
+    });
+    if (room.time == 0) {
+        endRound(room);
+    }
 }
 
 // Generates an array of letters given the set
@@ -207,6 +233,13 @@ function generateBoardArray(diceSet) {
     return letters;
 }
 
+// Broadcasts the state of the game to the given room
+function broadcastGameState(room){
+    room['users'].forEach(function(user){
+        user.socket.emit('game-state', room.state);
+    });
+}
+
 // Ends a round of the game for the given room
 function endRound(room){
     console.log("Room '%s': Round ended", room.name);
@@ -215,7 +248,7 @@ function endRound(room){
     room['users'].forEach(function(user){
         user.socket.emit('send-words');
     });
-    setTimeout(generateResult, 500, room);
+    setTimeout(generateResult, 300, room);
 }
 
 // Generates the result of the round for the given room

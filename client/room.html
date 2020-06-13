@@ -46,7 +46,7 @@
 
             <div class="col-8" id="pre-game-container">
                 <div class="card card-body bg-light mx-auto text-center">
-                    <button type="button" class="btn btn-primary mx-auto" style="max-width: 150px" id="start-game">Start Game</button>
+                    <button type="button" class="btn btn-primary mx-auto" style="max-width: 150px" id="start-round">Start Game</button>
                 </div>
             </div>
 
@@ -68,8 +68,13 @@
                         </div>
                         <div class="col-6">
                             <div class="card bg-light mx-auto" id="found-words-container">
-                                <div class="card-header text-center" id="timer">
-                                    3:00
+                                <div class="card-header text-center">
+                                    <div id="timer" style="display: inline-block;"></div>
+                                    <div class="float-right">
+                                        <button class="btn btn-outline-secondary" id="pause">&#9208;</button>
+                                        <button class="btn btn-outline-secondary" id="resume" style="display: none;">&#9654;</button>
+                                        <button class="btn btn-outline-secondary" id="end-round">End</button>
+                                    </div>
                                 </div>
                                 <div class="card-body overflow-auto" style="height: 262px">
                                     <ol class="m-0" id="found-words">
@@ -95,6 +100,23 @@
             </div>
             
             <div class="col-4">
+                <div class="card bg-light mb-4">
+                    <div class="card-header text-center">
+                        User
+                    </div>  
+                    <div class="card-body">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="basic-addon1">@</span>
+                            </div>
+                            <input type="text" class="form-control" placeholder="Username" aria-label="Username"
+                                aria-describedby="basic-addon1" id="username" maxlength="16">
+                        </div>
+                        <div id="singleplayer-score-card">
+                            <div class="info-row"><span class="float-left">Best</span><span class="float-right">0</span></div>
+                        </div>
+                    </div>
+                </div>
                 <div class="card bg-light mx-auto" id="multiplayer-score-card">
                     <div class="card-body">
                         <table id="users" style="width: 100%">
@@ -108,23 +130,6 @@
                             <tbody>
                             </tbody>
                         </table>
-                    </div>
-                </div>
-                <div class="card bg-light mx-auto mt-3">
-                    <div class="card-header text-center">
-                        User
-                    </div>  
-                    <div class="card-body">
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text" id="basic-addon1">@</span>
-                            </div>
-                            <input type="text" class="form-control" placeholder="Username" aria-label="Username"
-                                aria-describedby="basic-addon1" id="username" maxlength="16">
-                        </div>
-                        <div id="singleplayer-score-card">
-                            <div class="info-row"><span class="float-left">High Score</span><span class="float-right">0</span></div>
-                        </div>
                     </div>
                 </div>
             </div>

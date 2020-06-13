@@ -42,12 +42,19 @@ $(function () {
 
   socket.on('game-state', function (state){
     console.log("Received game state");
+    var pauseBTN = document.getElementById("pause");
+    var resumeBTN = document.getElementById("resume");
     switch(state){
       case 'ready':
         setWaitMode();
         break;
       case 'playing':
-        socket.emit('request-board');
+        pauseBTN.style.display = "inline";
+        resumeBTN.style.display = "none";
+        break;
+      case 'paused':
+        pauseBTN.style.display = "none";
+        resumeBTN.style.display = "inline";
         break;
     }
   });
@@ -110,7 +117,7 @@ $(function () {
     if(event.keyCode === 13){
       console.log("Enter, set focus elsewhere");
       event.preventDefault();
-      document.getElementById("start-game").focus();
+      document.getElementById("start-round").focus();
     } else {
       var name = document.getElementById("username").value;
       if (!name == "") {
@@ -218,20 +225,25 @@ $(function () {
   }
 
   // Buttons
-  $("#start-game").click(function(){
+  $("#start-round").click(function(){
     console.log("Starting round");
     socket.emit('start-round');
   });
 
+  $("#end-round").click(function(){
+    console.log("Ending round");
+    socket.emit('end-round');
+  });
+
+  $("#pause").click(function(){
+    socket.emit('pause-round');
+  });
+
+  $("#resume").click(function(){
+    socket.emit('resume-round');
+  });
+
   $("#pull").click(function(){
-    socket.emit('pull');
-  });
-
-  $("#save-board").click(function(){
-    socket.emit('save board');
-  });
-
-  $("#load-board").click(function(){
-    socket.emit('load board');
+    socket.emit('end-round');
   });
 });
