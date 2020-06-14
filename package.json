@@ -1,12 +1,12 @@
 {
-  "name": "code",
+  "name": "word-bolt",
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js"
   },
-  "author": "",
+  "author": "michael moscatt",
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
@@ -14,8 +14,8 @@
     "http": "0.0.1-security",
     "path": "^0.12.7",
     "socket.io": "^2.3.0"
-  }
-  "scripts": {
-    "start": "node app.js"
+  },
+  "engines": {
+    "node": "12.x"
   }
 }
