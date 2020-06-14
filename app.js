@@ -139,6 +139,13 @@ io.on('connection', function (socket) {
         }
     });
 
+    socket.on('reset-score', function() {
+        console.log("Room '%s': user '%s' reset score", room.name, user.username);
+        user.highScore = 0;
+        user.wins = 0;
+        broadcastScorecard(room);
+    });
+
     // DEBUG
 
     // socket.on('save board', function(list){
@@ -248,7 +255,14 @@ function endRound(room){
     room['users'].forEach(function(user){
         user.socket.emit('send-words');
     });
-    setTimeout(generateResult, 300, room);
+    var delay;
+    if(room['users'].length > 1){
+        delay = 300;
+    }
+    else{
+        delay = 50;
+    }
+    setTimeout(generateResult, delay, room);
 }
 
 // Generates the result of the round for the given room

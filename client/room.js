@@ -3,7 +3,7 @@ const ADJECTIVES = ['big','small','friendly'];
 
 $(function () {
   var socket = io();
-  var debug = true;
+  var debug = false;
 
   // Set page into 'wait' mode
   setWaitMode();
@@ -24,7 +24,8 @@ $(function () {
       scorecard.forEach(function(userInfo){
         var row = document.createElement('tr');
         row.classList.add("player-info-row");
-        row.innerHTML = '<td>' + userInfo.wins + '</td><td>' + userInfo.username + '</td><td>' + userInfo.highScore + '</td>';
+        row.innerHTML = '<td><span class="accent-light-badge">' + userInfo.wins + '</span></td><td>' +
+          userInfo.username + '</td><td><span class="accent-light-badge">' + userInfo.highScore + '</span></td>';
         tableBody.appendChild(row);
       });
       singleplayerSC.style.display = "none";
@@ -142,7 +143,7 @@ $(function () {
         $that = $(this);
         $that.parent().remove();
       });
-      $("#found-words").prepend('<li><span class="word">' + word + '</span><span class="float-right badge delete-word" onmouseover="">&#10005</span></li>');
+      $("#found-words").prepend('<li><span class="word">' + word + '</span><span class="float-right badge delete-word warning" onmouseover="">&#10005</span></li>');
     }
   }
 
@@ -166,8 +167,11 @@ $(function () {
 
   // Set up the page as it should be before the game starts
   function setWaitMode(){
-    document.getElementById("in-game-container").style.display = "none";
     document.getElementById("post-game-container").style.display = "none";
+    var inGameDivs = document.getElementsByClassName("in-game");
+    for(var i=0; i < inGameDivs.length; i++){
+      inGameDivs[i].style.display = "none";
+    }
     if(debug){
       document.getElementById("debug-buttons").style.display = "block";
     } else {
@@ -179,38 +183,40 @@ $(function () {
   function startRound(board){
     $('#board div').remove();
     document.getElementById("found-words").innerHTML = "";
-    board.forEach(letter => $('#board').append('<div class="board-cell">' + letter + '</div>'));
-    document.getElementById("pre-game-container").style.display = "none";
+    board.forEach(letter => $('#board').append('<div class="board-cell accent-ultralight">' + letter + '</div>'));
+    document.getElementById("start-round").disabled = true;
+    document.getElementById("welcome").style.display = "none";
     document.getElementById("post-game-container").style.display = "none";
-    document.getElementById("in-game-container").style.display = "block";
+    var inGameDivs = document.getElementsByClassName("in-game");
+    for(var i=0; i < inGameDivs.length; i++){
+      inGameDivs[i].style.display = "block";
+    }
   }
 
   // Ends the round by displaying the result
   function endRound(result){
-    document.getElementById("result-col-1").style.display = "none";
-    document.getElementById("result-col-2").style.display = "none";
-    document.getElementById("result-col-3").style.display = "none";
     var columns = [document.getElementById('result-col-1'), document.getElementById('result-col-2'), document.getElementById('result-col-3')];
-    for(var i = 0; i < 3; i++){
+    for(var i = 0; i < columns.length; i++){
       columns[i].innerHTML = "";
+      columns[i].style.display = "none";
     }
     for(var i = 0; i < result.length; i++){
       var player = result[i];
       var player_card = document.createElement('div');
-      player_card.classList.add("card", "bg-light", "player-result");
+      player_card.classList.add("card", "player-result", "primary-border");
       var header = document.createElement('div');
-      header.classList.add("card-header");
-      var header_content = document.createElement('h5');
-      header_content.classList.add("m-1");
-      header_content.innerHTML = player.name + '<span class="float-right badge badge-pill total-score">' + player.score + '</span>';
+      header.classList.add("card-header", "p-1", "primary-light", "primary-border-header");
+      var header_content = document.createElement('div');
+      header_content.classList.add("m-1", "player-result-header");
+      header_content.innerHTML = '<span class="primary-dark-badge total-score">' + player.score + '</span><div>' + player.name + '</div>';
       header.appendChild(header_content);
       var body = document.createElement('div');
-      body.classList.add("card-body", "overflow-auto");
+      body.classList.add("card-body", "primary-ultralight", "overflow-auto");
       var playerWordsHtml = ['<ol>']
       for(var  j = 0; j < player['words'].length; j++){
         var val = player['wordVals'][j];
         var word = player['words'][j];
-        playerWordsHtml.push('<li>' + word + '<span class="float-right badge score">' + val + '</span></li>');
+        playerWordsHtml.push('<li>' + word + '<span class="float-right accent-shade-badge point-1">' + val + '</span></li>');
       }
       playerWordsHtml.push('</ol>')
       body.innerHTML = playerWordsHtml.join('');
@@ -219,8 +225,11 @@ $(function () {
       columns[i % 3].append(player_card);
       columns[i % 3].style.display = "block";
     }
-    document.getElementById("pre-game-container").style.display = "block";
-    document.getElementById("in-game-container").style.display = "none";
+    document.getElementById("start-round").disabled = false;
+    var inGameDivs = document.getElementsByClassName("in-game");
+    for(var i=0; i < inGameDivs.length; i++){
+      inGameDivs[i].style.display = "none";
+    }
     document.getElementById("post-game-container").style.display = "block";
   }
 
@@ -228,11 +237,6 @@ $(function () {
   $("#start-round").click(function(){
     console.log("Starting round");
     socket.emit('start-round');
-  });
-
-  $("#end-round").click(function(){
-    console.log("Ending round");
-    socket.emit('end-round');
   });
 
   $("#pause").click(function(){
@@ -243,7 +247,13 @@ $(function () {
     socket.emit('resume-round');
   });
 
-  $("#pull").click(function(){
+  $("#end-round").click(function(){
+    console.log("Ending round");
     socket.emit('end-round');
+  });
+
+  $("#reset-score").click(function(){
+    console.log("Resetting score");
+    socket.emit('reset-score');
   });
 });

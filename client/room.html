@@ -12,6 +12,10 @@
 
     <link rel="stylesheet" href="/room.css">
 
+    <!-- Font Awesome -->
+
+    <script src="https://kit.fontawesome.com/66c60e53af.js" crossorigin="anonymous"></script>
+
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
@@ -26,11 +30,12 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/room.js"></script>
 
-    <title>Wordfinder</title>
+    <title>Word Bolt</title>
 </head>
 
 <body>
     <div class="container">
+
         <div class="row">
             <div class="col-12" id="debug-buttons">
                 <button id="pull">Pull</button>
@@ -38,101 +43,105 @@
                 <button id="load-board">Load Board</button>
             </div>
         </div>
+
         <div class="row">
             <div class="col-12" id="top-space">
             </div>
         </div>
-        <div class="row">
 
-            <div class="col-8" id="pre-game-container">
-                <div class="card card-body bg-light mx-auto text-center">
-                    <button type="button" class="btn btn-primary mx-auto" style="max-width: 150px" id="start-round">Start Game</button>
+        <div class="row d-flex justify-content-center">
+            <div class="col-12 col-lg-8" id="welcome">
+                <div class="card primary-border-header mx-auto">
+                    <div class="card-header text-center primary-light primary-border-header" style="font-weight: bold;">
+                        Welcome to Word Bolt!
+                    </div>
+                    <div class="card-body primary-ultralight">
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+                            Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+                            Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-4 in-game">
+                <div id="board" class="primary-light primary-border">
+                </div>
+                <div class="m-1 text-center" id="error-container">
+                </div>
+                <div class="input-group" id="word-submission-container">
+                    <input class="accent-border primary-ultralight" type="text" class="form-control" placeholder="WORD" id="word" maxlength="16"
+                        oninput="this.value = this.value.toUpperCase()" style="width:75%;">
+                    <div class="input-group-append" style="width:25%;">
+                        <button class="btn accent-light accent-border" type="button" id="submit-word">Submit</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-4 in-game">
+                <div class="card mx-auto primary-border-header" id="found-words-container">
+                    <div class="card-header text-center primary-light primary-border-header">
+                        <div id="timer" style="display: inline-block;"></div>
+                        <div class="float-right">
+                            <button class="btn accent-light accent-border" id="pause">&#9208;</button>
+                            <button class="btn accent-light accent-border" id="resume" style="display: none;">&#9654;</button>
+                            <button class="btn accent-light accent-border" id="end-round">End</button>
+                        </div>
+                    </div>
+                    <div class="card-body overflow-auto primary-ultralight" style="height: 262px">
+                        <ol class="m-0" id="found-words">
+                        </ol>
+                    </div>
                 </div>
             </div>
 
-            <div class="col-8" id="in-game-container">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-6">
-                            <div id="board">
-                            </div>
-                            <div class="m-3 text-center" id="error-container">
-                            </div>
-                            <div class="input-group" id="word-submission-container">
-                                <input type="text" class="form-control" placeholder="WORD" id="word" maxlength="16"
-                                    oninput="this.value = this.value.toUpperCase()">
-                                <div class="input-group-append">
-                                    <button class="btn btn-outline-secondary" type="button" id="submit-word">Submit</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="card bg-light mx-auto" id="found-words-container">
-                                <div class="card-header text-center">
-                                    <div id="timer" style="display: inline-block;"></div>
-                                    <div class="float-right">
-                                        <button class="btn btn-outline-secondary" id="pause">&#9208;</button>
-                                        <button class="btn btn-outline-secondary" id="resume" style="display: none;">&#9654;</button>
-                                        <button class="btn btn-outline-secondary" id="end-round">End</button>
-                                    </div>
-                                </div>
-                                <div class="card-body overflow-auto" style="height: 262px">
-                                    <ol class="m-0" id="found-words">
-                                    </ol>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>          
-
-            <div class="col-8" id="post-game-container">
+            <div class="col-12 col-lg-8" id="post-game-container">
                 <div class="container">
                     <div class="row d-flex justify-content-center">
-                        <div class="col-4" id="result-col-1">
+                        <div class="col-12 col-lg-6" id="result-col-1">
                         </div>
-                        <div class="col-4" id="result-col-2">
+                        <div class="col-12 col-lg-6" id="result-col-2">
                         </div>
-                        <div class="col-4" id="result-col-3">
+                        <div class="col-12 col-lg-6" id="result-col-3">
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="col-4">
-                <div class="card bg-light mb-4">
-                    <div class="card-header text-center">
-                        User
-                    </div>  
-                    <div class="card-body">
-                        <div class="input-group mb-3">
+            <div class="col-12 col-lg-4">
+                <div class="card primary-border-header" id="scorecard">
+                    <div class="card-header primary-light primary-border-header">
+                        <div style="display: flex; justify-content: space-between;">
+                            <button type="button" class="btn accent-light accent-border" id="start-round" style="display: inline-block;">Start Round</button>
+                            <button type="button" class="btn accent-light accent-border" id="reset-score" style="display: inline-block;">Reset Score</button>
+                        </div>
+                    </div>
+                    <div class="card-body primary-ultralight">
+                        <div class="input-group mb-4">
                             <div class="input-group-prepend">
-                                <span class="input-group-text" id="basic-addon1">@</span>
+                                <span class="input-group-text" id="basic-addon1"><i class="fas fa-user primary-dark"></i></span>
                             </div>
                             <input type="text" class="form-control" placeholder="Username" aria-label="Username"
                                 aria-describedby="basic-addon1" id="username" maxlength="16">
                         </div>
-                        <div id="singleplayer-score-card">
-                            <div class="info-row"><span class="float-left">Best</span><span class="float-right">0</span></div>
+                        <div id="singleplayer-score-card" style="margin: 0 auto; width: 200px;">
+                            <div class="info-row"><span class="float-left">High Score</span><span class="float-right">0</span></div>
+                        </div>
+                        <div id="multiplayer-score-card" style="display: none">
+                            <table id="users" style="width: 100%">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 75px">Wins</th>
+                                        <th>Name</th>
+                                        <th style="width: 55px">Best</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
-                <div class="card bg-light mx-auto" id="multiplayer-score-card">
-                    <div class="card-body">
-                        <table id="users" style="width: 100%">
-                            <thead>
-                                <tr>
-                                    <th style="width: 65px">Wins</th>
-                                    <th>Name</th>
-                                    <th style="width: 65px">Best</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
             </div>
+
         </div>
     </div>
 </body>
