@@ -10,7 +10,11 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
         integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="/index.css">
+    <link rel="stylesheet" href="/style.css">
+
+    <!-- Font Awesome -->
+
+    <script src="https://kit.fontawesome.com/66c60e53af.js" crossorigin="anonymous"></script>
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
@@ -26,14 +30,34 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/index.js"></script>
 
-    <title>Wordfinder</title>
+    <title>Word Bolt</title>
 </head>
 
 <body>
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <button id="new-room">New Room</button>
+    <nav class="navbar navbar-expand-sm primary-mid">
+        <a class="navbar-brand" href="#" style="font-weight: bold;">
+           Word Bolt
+           <i class="fas fa-bolt"></i>
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+            aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <a class="nav-item nav-link" href="#" onclick="randRoomRedirect()">Game</a>
+                <a class="nav-item nav-link" href="">Tutorial</a>
+                <a class="nav-item nav-link" href="">About</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container" style="height: 50vh;">
+        <div class="row h-100">
+            <div class="col-12 my-auto d-flex justify-content-center">
+                <button id="new-room" class="primary-mid button">
+                    Play
+                    <i class="fas fa-bolt"></i>
+                </button>
             </div>
         </div>
     </div>

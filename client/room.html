@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
         integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="/room.css">
+    <link rel="stylesheet" href="/style.css">
 
     <!-- Font Awesome -->
 
@@ -34,28 +34,29 @@
 </head>
 
 <body>
+    <nav class="navbar navbar-expand-sm primary-mid">
+        <a class="navbar-brand" href="/" style="font-weight: bold;">
+           Word Bolt
+           <i class="fas fa-bolt"></i>
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+            aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <a class="nav-item nav-link active" href="#!">Game</a>
+                <a class="nav-item nav-link" href="">Tutorial</a>
+                <a class="nav-item nav-link" href="">About</a>
+            </div>
+        </div>
+    </nav>
     <div class="container">
-
-        <div class="row">
-            <div class="col-12" id="debug-buttons">
-                <button id="pull">Pull</button>
-                <button id="save-board">Save Board</button>
-                <button id="load-board">Load Board</button>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-12" id="top-space">
-            </div>
-        </div>
-
         <div class="row d-flex justify-content-center">
-            <div class="col-12 col-lg-8" id="welcome">
-                <div class="card primary-border-header mx-auto">
-                    <div class="card-header text-center primary-light primary-border-header" style="font-weight: bold;">
-                        Welcome to Word Bolt!
-                    </div>
-                    <div class="card-body primary-ultralight">
+            <div class="col-12 col-xl-8 mt-5" id="welcome">
+                <div class="card mx-auto light-grey-border shadow">
+                    <div class="card-body grey-ultralight">
+                        <h5 class="text-center">Welcome to Word Bolt!</h5>
                         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                             Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
                             Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
@@ -63,63 +64,57 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-lg-4 in-game">
-                <div id="board" class="primary-light primary-border">
-                </div>
-                <div class="m-1 text-center" id="error-container">
-                </div>
-                <div class="input-group" id="word-submission-container">
-                    <input class="accent-border primary-ultralight" type="text" class="form-control" placeholder="WORD" id="word" maxlength="16"
-                        oninput="this.value = this.value.toUpperCase()" style="width:75%;">
-                    <div class="input-group-append" style="width:25%;">
-                        <button class="btn accent-light accent-border" type="button" id="submit-word">Submit</button>
+            <div class="col-12 col-lg-6 col-xl-4 in-game mt-5">
+                <div id="constrain-to-board" class="ml-auto mr-4">
+                    <div id="board" class="primary-mid-light mid-grey-border shadow">
+                    </div>
+                    <div class="m-1 text-center" id="error-container">
+                    </div>
+                    <div class="input-group mb-3" id="word-submission-container">
+                        <input type="text" class="form-control light-grey-border shadow grey-ultralight" placeholder="WORD"
+                            aria-label="Recipient's username" aria-describedby="button-addon2" id="word" maxlength="16"
+                            oninput="this.value = this.value.toUpperCase()">
+                        <div class="input-group-append">
+                            <button class="button primary-mid shadow" type="button" id="submit-word"
+                                style="border-bottom-left-radius: 0rem; border-top-left-radius: 0rem;">Submit</button>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-lg-4 in-game">
-                <div class="card mx-auto primary-border-header" id="found-words-container">
-                    <div class="card-header text-center primary-light primary-border-header">
+            <div class="col-12 col-lg-6 col-xl-4 in-game mt-5">
+                <div class="card light-grey-border shadow mr-auto ml-4" id="found-words-container">
+                    <div class="card-header text-center grey-ultralight header-light-grey-border">
                         <div id="timer" style="display: inline-block;"></div>
                         <div class="float-right">
-                            <button class="btn accent-light accent-border" id="pause"><i class="fas fa-pause accent-light shrink-icon"></i></button>
-                            <button class="btn accent-light accent-border" id="resume" style="display: none;"><i class="fas fa-play accent-light shrink-icon"></i></button>
-                            <button class="btn accent-light accent-border" id="end-round">End</button>
+                            <button class="button primary-mid" id="pause"><i class="fas fa-pause shrink-icon"></i></button>
+                            <button class="button primary-mid" id="resume" style="display: none;"><i class="fas fa-play shrink-icon"></i></button>
+                            <button class="button primary-mid" id="end-round">End</button>
                         </div>
                     </div>
-                    <div class="card-body overflow-auto primary-ultralight" style="height: 262px">
+                    <div class="card-body overflow-auto grey-ultralight p-3" style="height: 262px">
                         <ol class="m-0" id="found-words">
                         </ol>
                     </div>
                 </div>
             </div>
 
-            <div class="col-12 col-lg-8" id="post-game-container">
-                <div class="container">
-                    <div class="row d-flex justify-content-center">
-                        <div class="col-12 col-lg-6" id="result-col-1">
-                        </div>
-                        <div class="col-12 col-lg-6" id="result-col-2">
-                        </div>
-                        <div class="col-12 col-lg-6" id="result-col-3">
-                        </div>
-                    </div>
-                </div>
+            <div class="col-12 col-xl-8 mt-5" id="post-game-container">
             </div>
             
-            <div class="col-12 col-lg-4">
-                <div class="card primary-border-header" id="scorecard">
-                    <div class="card-header primary-light primary-border-header">
+            <div class="col-12 col-xl-4 mt-5">
+                <div class="card mx-auto light-grey-border shadow" id="scorecard">
+                    <div class="card-body grey-ultralight">
                         <div style="display: flex; justify-content: space-between;">
-                            <button type="button" class="btn accent-light accent-border" id="start-round" style="display: inline-block;">Start Round</button>
-                            <button type="button" class="btn accent-light accent-border" id="reset-score" style="display: inline-block;">Reset Score</button>
+                            <button type="button" class="button primary-mid mx-3" id="start-round" style="display: inline-block;">Start
+                                Round</button>
+                            <button type="button" class="button  primary-mid mx-3" id="reset-score" style="display: inline-block;">Reset
+                                Score</button>
                         </div>
-                    </div>
-                    <div class="card-body primary-ultralight">
-                        <div class="input-group mb-4">
+                        <div class="input-group mb-4 mt-3 mod-ig">
                             <div class="input-group-prepend">
-                                <span class="input-group-text" id="basic-addon1"><i class="fas fa-user primary-dark"></i></span>
+                                <span class="input-group-text grey-light light-grey-border" id="basic-addon1"><i class="fas fa-user primary-mid-color"></i></span>
                             </div>
-                            <input type="text" class="form-control" placeholder="Username" aria-label="Username"
+                            <input type="text" class="form-control light-grey-border" placeholder="Username" aria-label="Username"
                                 aria-describedby="basic-addon1" id="username" maxlength="16">
                         </div>
                         <div id="singleplayer-score-card" style="margin: 0 auto; width: 200px;">
@@ -137,6 +132,12 @@
                                 <tbody>
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="form-check text-center mt-3">
+                            <input class="form-check-input" type="checkbox" value="" id="sortResultsToggle">
+                            <label class="form-check-label" for="sortResultsToggle">
+                                Sort Results
+                            </label>
                         </div>
                     </div>
                 </div>

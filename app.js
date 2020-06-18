@@ -282,19 +282,20 @@ function generateResult(room){
     room['users'].forEach(function(user){
         var userResult = new Object();
         var score = 0;
+        var validWords = 0;
         userResult['name'] = user.username;
-        userResult['words'] = [];
-        userResult['wordVals'] = [];
+        userResult['wordsUnsorted'] = [];
         user.wordList.forEach(function(word){
             if(room['solution'].includes(word)){
                 var count = 0;
+                validWords++;
                 for (var i = 0; i < pooledFoundWords.length; i++) {
                     if (pooledFoundWords[i] == word){
                         count++;
                     }
                 }
                 if(count > 1){
-                    userResult['wordVals'].push(0);
+                    userResult['wordsUnsorted'].push({'word': word, 'val': 0});
                 }
                 else{
                     var wordVal = 0;
@@ -310,16 +311,45 @@ function generateResult(room){
                         wordVal = 11;
                     }
                     score = score + wordVal;
-                    userResult['wordVals'].push(wordVal);
+                    userResult['wordsUnsorted'].push({'word': word, 'val': wordVal});
                 }
             }
             else{
                 score = score - 1;
-                userResult['wordVals'].push(-1);
+                userResult['wordsUnsorted'].push({'word': word, 'val': -1})
             }
-            userResult['words'].push(word);
+        });
+        var unsorted = userResult['wordsUnsorted'];
+        userResult['wordsSorted'] = unsorted.slice(0, unsorted.length);
+        userResult['wordsSorted'].sort(function(a, b){
+            if(a['val'] > b['val']){
+                console.log("value a > b at %s/%s, %i/%i", a["word"], b["word"], a['val'], b['val']);
+                return -1;
+            } else if(a['val'] < b['val']) {
+                console.log("value a < b at %s/%s", a["word"], b["word"]);
+                return 1;
+            } else {
+                console.log("value a = b at %s/%s", a["word"], b["word"]);
+                if(a['word'].length > b['word'].length){
+                    console.log("length a > b at %s/%s", a["word"], b["word"]);
+                    return -1;
+                } else if(a['word'].length < b['word'].length){
+                    console.log("length a < b at %s/%s", a["word"], b["word"]);
+                    return 1;
+                } else {
+                    console.log("length a = b at %s/%s", a["word"], b["word"]);
+                    if (a['word'] < b['word']) {
+                        console.log("a < b");
+                        return -1;
+                    } else {
+                        console.log("a > b");
+                        return 1;
+                    }
+                }
+            }
         });
         userResult['score'] = score;
+        userResult['validWords'] = validWords;
         user.score = score;
         user.highScore = Math.max(user.highScore, score);
         winningScore = Math.max(winningScore, score);
@@ -486,86 +516,29 @@ function nextInds(current, visited){
     return indices;
 }
 
-// function saveBoard(filename){
-//     fs.writeFile('server/' + filename, JSON.stringify(board),
-//         function (err) {
-//             if (err)
-//                 console.log(err);
-//             else
-//                 console.log('Write operation complete.');
-//         }
-//     );
-// }
-
-// function loadBoard(filename){
-//     fs.readFile('server/' + filename, "utf8", function (err, data) {
-//         console.log("DATA:");
-//         console.log(data);
-//         board = JSON.parse(data);
-//         console.log("Printing board");
-//         console.log(board);
-
-//         Object.keys(users).forEach(function (socketID) {
-//             user = users[socketID];
-//             console.log("Broadcasting board to: %s", user.username);
-//             user.socket.emit('board', board);
-//             user.wordList = [];
-//         });
-
-//         solution = generateSolution(board);
-//         console.log("SOLUTION:");
-//         var sortedList = sortLengthAlpha(solution);
-//         sortedList.forEach(word => console.log(word));
-//         console.log("Solution length is %i", sortedList.length);
-//     });
-// }
-
-// function sortLengthAlpha(list){
-//     sortedList = [];
-//     var longest = 0;
-//     list.forEach(function(word){
-//         if(word.length > longest){
-//             longest = word.length;
-//         }
-//     });
-//     var i;
-//     for(i = longest; i > 3; i--){
-//         var listAtThisLetter = [];
-//         list.forEach(function(word){
-//             if(word.length == i){
-//                 listAtThisLetter.push(word);
-//             }
-//         });
-//         listAtThisLetter.sort();
-//         listAtThisLetter.forEach(function(word){
-//             sortedList.push(word);
-//         });
-//     }
-//     return sortedList;
-// }
-
-// Check username, if unique broadcasts names to lobby
-// function usernameSubmission(socket, username) {
-//     if (checkUniqueUser(username)) {
-//         // Check if this 
-//         user = makeUser(socket, username);
-//         users[socket.id] = user;
-//         socket.emit('username validity', true);
-//         broadcastLobbyNames();
-//     } else {
-//         console.log('Username already in use');
-//         socket.emit('username validity', false);
-//     }
-// }
-
-// function checkUniqueUser(username){
-//     Object.values(users).forEach(function(user){
-//         if(user.username==username) {
-//             return false;
-//         }
-//     });
-//     console.log('Username %s is unique.', username);
-// }
+function sortLengthAlpha(list){
+    sortedList = [];
+    var longest = 0;
+    list.forEach(function(word){
+        if(word.length > longest){
+            longest = word.length;
+        }
+    });
+    var i;
+    for(i = longest; i > 3; i--){
+        var listAtThisLetter = [];
+        list.forEach(function(word){
+            if(word.length == i){
+                listAtThisLetter.push(word);
+            }
+        });
+        listAtThisLetter.sort();
+        listAtThisLetter.forEach(function(word){
+            sortedList.push(word);
+        });
+    }
+    return sortedList;
+}
 
 // Cut all <4 letter words out
 // function cutfour() {

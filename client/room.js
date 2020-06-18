@@ -3,7 +3,6 @@ const ADJECTIVES = ['big','small','friendly'];
 
 $(function () {
   var socket = io();
-  var debug = false;
 
   // Set page into 'wait' mode
   setWaitMode();
@@ -24,8 +23,8 @@ $(function () {
       scorecard.forEach(function(userInfo){
         var row = document.createElement('tr');
         row.classList.add("player-info-row");
-        row.innerHTML = '<td><span class="accent-light-badge">' + userInfo.wins + '</span></td><td>' +
-          userInfo.username + '</td><td><span class="accent-light-badge">' + userInfo.highScore + '</span></td>';
+        row.innerHTML = '<td><div class="text-center my-badge md-badge accent-mid-light shadow-sm">' + userInfo.wins + '</div></td><td>' +
+          userInfo.username + '</td><td><div class="text-center my-badge md-badge primary-mid-light shadow-sm">' + userInfo.highScore + '</div></td>';
         tableBody.appendChild(row);
       });
       singleplayerSC.style.display = "none";
@@ -33,7 +32,8 @@ $(function () {
     } else {
       var SCRow = document.createElement('div');
       SCRow.classList.add("info-row");
-      SCRow.innerHTML = '<span class="float-left">High Score</span><span class="float-right">' + scorecard[0].highScore + '</span>';
+      SCRow.innerHTML = '<span class="float-left">High Score</span><span class="float-right"><div class="text-center my-badge md-badge primary-mid-light shadow-sm">' +
+        scorecard[0].highScore + '</div></span>';
       singleplayerSC.innerHTML = "";
       singleplayerSC.appendChild(SCRow);
       singleplayerSC.style.display = "block";
@@ -116,9 +116,8 @@ $(function () {
   // Change name
   document.getElementById("username").addEventListener("keyup", function(event){
     if(event.keyCode === 13){
-      console.log("Enter, set focus elsewhere");
       event.preventDefault();
-      document.getElementById("start-round").focus();
+      document.getElementById("username").blur();
     } else {
       var name = document.getElementById("username").value;
       if (!name == "") {
@@ -126,6 +125,9 @@ $(function () {
       }
     }
   });
+
+  // Toggle sort results
+  document.getElementById('sortResultsToggle').addEventListener("click", sortResultsCheck);
 
   // Add a word to the word list
   function submitWord(){
@@ -143,7 +145,7 @@ $(function () {
         $that = $(this);
         $that.parent().remove();
       });
-      $("#found-words").prepend('<li><span class="word">' + word + '</span><span class="float-right badge delete-word warning" onmouseover="">&#10005</span></li>');
+      $("#found-words").prepend('<li><span class="word">' + word + '</span><div class="float-right my-badge delete-word shadow-sm" onmouseover="">x</div></li>');
     }
   }
 
@@ -172,18 +174,13 @@ $(function () {
     for(var i=0; i < inGameDivs.length; i++){
       inGameDivs[i].style.display = "none";
     }
-    if(debug){
-      document.getElementById("debug-buttons").style.display = "block";
-    } else {
-      document.getElementById("debug-buttons").style.display = "none";
-    }
   }
 
   // Set elements visible needed for playing a round, clear any words from last round
   function startRound(board){
     $('#board div').remove();
     document.getElementById("found-words").innerHTML = "";
-    board.forEach(letter => $('#board').append('<div class="board-cell accent-ultralight">' + letter + '</div>'));
+    board.forEach(letter => $('#board').append('<div class="board-cell grey-ultralight light-grey-border">' + letter + '</div>'));
     document.getElementById("start-round").disabled = true;
     document.getElementById("welcome").style.display = "none";
     document.getElementById("post-game-container").style.display = "none";
@@ -191,39 +188,33 @@ $(function () {
     for(var i=0; i < inGameDivs.length; i++){
       inGameDivs[i].style.display = "block";
     }
+    document.getElementById('word').focus();
   }
 
-  // Ends the round by displaying the result
   function endRound(result){
-    var columns = [document.getElementById('result-col-1'), document.getElementById('result-col-2'), document.getElementById('result-col-3')];
-    for(var i = 0; i < columns.length; i++){
-      columns[i].innerHTML = "";
-      columns[i].style.display = "none";
-    }
+    var container = document.getElementById("post-game-container");
+    container.innerHTML = "";
     for(var i = 0; i < result.length; i++){
       var player = result[i];
       var player_card = document.createElement('div');
-      player_card.classList.add("card", "player-result", "primary-border");
+      player_card.classList.add("card", "player-result", "light-grey-border", "shadow", "mx-3", "mb-3");
       var header = document.createElement('div');
-      header.classList.add("card-header", "p-1", "primary-light", "primary-border-header");
-      var header_content = document.createElement('div');
-      header_content.classList.add("m-1", "player-result-header");
-      header_content.innerHTML = '<span class="primary-dark-badge total-score">' + player.score + '</span><div>' + player.name + '</div>';
-      header.appendChild(header_content);
+      header.classList.add("card-header", "py-2", "px-3", "grey-ultralight", "header-light-grey-border");
+      header.innerHTML = '<div class="font-weight-bold">' + player.name + '</div><div class="float-left">Score: <div class="my-badge md-badge primary-mid-light shadow-sm">' +
+        player.score + '</div></div><div class="float-right">Words: <div class="my-badge md-badge accent2-mid-light shadow-sm">' + player.validWords + '</div></div>';
       var body = document.createElement('div');
-      body.classList.add("card-body", "primary-ultralight", "overflow-auto");
-      var playerWordsHtml = ['<ol>']
-      for(var  j = 0; j < player['words'].length; j++){
-        var val = player['wordVals'][j];
-        var word = player['words'][j];
-        playerWordsHtml.push('<li>' + word + '<span class="float-right accent-shade-badge point-1">' + val + '</span></li>');
-      }
-      playerWordsHtml.push('</ol>')
-      body.innerHTML = playerWordsHtml.join('');
+      body.classList.add("card-body", "grey-ultralight", "overflow-auto");
+      var unsortedWords = document.createElement('ol');
+      unsortedWords.classList.add("mb-0", "unsorted-result");
+      unsortedWords.innerHTML = generatedPlayerResultList(result[i].wordsUnsorted);
+      var sortedWords = document.createElement('ol');
+      sortedWords.classList.add("mb-0", "sorted-result", "d-none");
+      sortedWords.innerHTML = generatedPlayerResultList(result[i].wordsSorted);
+      body.appendChild(unsortedWords);
+      body.appendChild(sortedWords);
       player_card.appendChild(header);
       player_card.appendChild(body);
-      columns[i % 3].append(player_card);
-      columns[i % 3].style.display = "block";
+      container.append(player_card);
     }
     document.getElementById("start-round").disabled = false;
     var inGameDivs = document.getElementsByClassName("in-game");
@@ -231,6 +222,78 @@ $(function () {
       inGameDivs[i].style.display = "none";
     }
     document.getElementById("post-game-container").style.display = "block";
+    sortResultsCheck();
+  }
+
+  function generatedPlayerResultList(list){
+    result = [''];
+    list.forEach(function(pair){
+      var wordStyling;
+      var badgeStyling;
+      var val = pair['val'];
+      var word = pair['word'];
+      switch(val){
+        case -1:
+          wordStyling = "danger-color";
+          badgeStyling = "danger";
+          break;
+        case 0:
+          wordStyling = "canceled-color";
+          badgeStyling = "canceled";
+          break;
+        case 1:
+          wordStyling = "correct-color";
+          badgeStyling = "correct-1";
+          break;
+        case 2:
+          wordStyling = "correct-color";
+          badgeStyling = "correct-2";
+          break;
+        case 3:
+          wordStyling = "correct-color";
+          badgeStyling = "correct-3";
+          break;
+        case 5:
+          wordStyling = "correct-color";
+          badgeStyling = "correct-4";
+          break;
+        case 11:
+          wordStyling = "correct-color";
+          badgeStyling = "correct-5";
+          break;
+      }
+      result.push('<li><div class="d-inline-block ' + wordStyling + '">' + word + 
+        '</div><div class="float-right my-badge md-badge shadow-sm text-center ' + badgeStyling + '">' + val + '</div></li>');
+    });
+    return result.join('');
+  }
+
+  function sortResultsCheck(){
+    var checkbox = document.getElementById('sortResultsToggle');
+    var container = document.getElementById("post-game-container");
+    var elementsToToggleOff;
+    var elementsToToggleOn;
+    if(checkbox.checked){
+      elementsToToggleOff = container.getElementsByClassName('unsorted-result');
+      for(var i=0; i < elementsToToggleOff.length; i++){
+        elementsToToggleOff[i].classList.remove('d-none');
+        elementsToToggleOff[i].classList.add('d-none');
+      }
+      elementsToToggleOn = container.getElementsByClassName('sorted-result');
+      for(var i=0; i < elementsToToggleOn.length; i++){
+        elementsToToggleOn[i].classList.remove('d-none');
+      }
+    } else {
+      elementsToToggleOff = container.getElementsByClassName('sorted-result');
+      for(var i=0; i < elementsToToggleOff.length; i++){
+        elementsToToggleOff[i].classList.remove('d-none');
+        elementsToToggleOff[i].classList.add('d-none');
+      }
+      elementsToToggleOn = container.getElementsByClassName('unsorted-result');
+      for(var i=0; i < elementsToToggleOn.length; i++){
+        elementsToToggleOn[i].classList.remove('d-none');
+      }
+    }
   }
 
   // Buttons

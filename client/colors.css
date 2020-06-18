@@ -3,7 +3,7 @@
 
     color: #F2F2F2; /* 95 */
 
-    color: #CCCCCC; /* 80 */
+    color: #cccccc; /* 80 */
 
     color: #B3B3B3; /* 70 */
 
@@ -14,6 +14,13 @@
     color: #404040; /* 25 */
 
     color: #262626; /* 15 */
+}
+
+.purple {
+
+    color: #7a3df5; /* 60 */
+
+
 }
 
 .blue {
