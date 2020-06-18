@@ -13,6 +13,14 @@ $(function () {
   // Assign newly connected user a random name
   setName(randomName());
 
+  // Inform server of room name and user name
+  socket.on('request-user-info', function() {
+    socket.emit('room-name', window.location.pathname.split("/").pop());
+    var username = document.getElementById('username').value;
+    console.log("Sent my username: %s", username)
+    socket.emit("username", username);
+  });
+
   socket.on('scorecard', function (scorecard) {
     // Determine if single or multiplayer mode
     var singleplayerSC = document.getElementById("singleplayer-score-card");

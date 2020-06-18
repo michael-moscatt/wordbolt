@@ -56,6 +56,7 @@ app.use(express.static(path.join(__dirname, 'client')));
 io.on('connection', function (socket) {
     var room;
     var user = createUser(socket);
+    socket.emit('request-user-info');
 
     socket.on('room-name', function(roomName){
         if(!rooms.hasOwnProperty(roomName)){
@@ -72,13 +73,15 @@ io.on('connection', function (socket) {
             };
         }
         room = rooms[roomName];
-        room['users'].push(user);
-        console.log("User has joined room '%s'", roomName);
-        // Get user up to speed who joins mid-round
-        if(room.state == 'playing' || room.state == 'paused'){
-            socket.emit('game-state', room.state);
-            socket.emit('board', room.board);
-            user.socket.emit('time', room.time);
+        if(!room['users'].includes(user)){
+            room['users'].push(user);
+            console.log("User has joined room '%s'", roomName);
+            // Get user up to speed who joins mid-round
+            if(room.state == 'playing' || room.state == 'paused'){
+                socket.emit('game-state', room.state);
+                socket.emit('board', room.board);
+                user.socket.emit('time', room.time);
+            }
         }
     });
 
@@ -145,16 +148,6 @@ io.on('connection', function (socket) {
         user.wins = 0;
         broadcastScorecard(room);
     });
-
-    // DEBUG
-
-    // socket.on('save board', function(list){
-    //     saveBoard('board1');
-    // });
-
-    // socket.on('load board', function(list){
-    //     loadBoard('board1');
-    // });
 });
 
 http.listen(port, function() {
@@ -323,26 +316,18 @@ function generateResult(room){
         userResult['wordsSorted'] = unsorted.slice(0, unsorted.length);
         userResult['wordsSorted'].sort(function(a, b){
             if(a['val'] > b['val']){
-                console.log("value a > b at %s/%s, %i/%i", a["word"], b["word"], a['val'], b['val']);
                 return -1;
             } else if(a['val'] < b['val']) {
-                console.log("value a < b at %s/%s", a["word"], b["word"]);
                 return 1;
             } else {
-                console.log("value a = b at %s/%s", a["word"], b["word"]);
                 if(a['word'].length > b['word'].length){
-                    console.log("length a > b at %s/%s", a["word"], b["word"]);
                     return -1;
                 } else if(a['word'].length < b['word'].length){
-                    console.log("length a < b at %s/%s", a["word"], b["word"]);
                     return 1;
                 } else {
-                    console.log("length a = b at %s/%s", a["word"], b["word"]);
                     if (a['word'] < b['word']) {
-                        console.log("a < b");
                         return -1;
                     } else {
-                        console.log("a > b");
                         return 1;
                     }
                 }
@@ -372,7 +357,6 @@ function generateResult(room){
     });
     room.state = 'ready';
     broadcastScorecard(room);
-    console.log("Room '%s': Result generated", room.name);
 }
 
 // Generate tree from wordlist
