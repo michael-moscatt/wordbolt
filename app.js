@@ -54,8 +54,8 @@ app.get(/\/room\/.+/, (req, res) => res.sendFile(path.join(__dirname, '/client/r
 app.use(express.static(path.join(__dirname, 'client')));
 
 io.on('connection', function (socket) {
-    var room;
     var user = createUser(socket);
+    var room = createRoom(user);
     socket.emit('request-user-info');
 
     socket.on('room-name', function(roomName){
@@ -165,6 +165,21 @@ function createUser(socket){
         wins: 0
     };
     return user;
+}
+
+function createRoom(user){
+    var room =
+    {
+        'users': [],
+        'host': user,
+        'name': false,
+        'state': 'ready',
+        'board': [],
+        'timer': false,
+        'time': false,
+        'solution': []
+    };
+    return room;
 }
 
 // Broadcasts names & scoring to users in the room
