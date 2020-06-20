@@ -217,6 +217,8 @@ function startRound(room) {
     });
 
     room.solution = generateSolution(room.board);
+    console.log("Solution");
+    console.log(JSON.stringify(room.solution, null, 4));
     room.time = ROUND_LENGTH;
     room['users'].forEach(function(user){
         user.socket.emit('time', room.time);
