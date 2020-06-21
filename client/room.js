@@ -187,6 +187,7 @@ $(function () {
   // Set elements visible needed for playing a round, clear any words from last round
   function startRound(board){
     $('#board div').remove();
+    document.getElementById("word").value = "";
     document.getElementById("found-words").innerHTML = "";
     board.forEach(letter => $('#board').append('<div class="board-cell grey-ultralight light-grey-border">' + letter + '</div>'));
     document.getElementById("start-round").disabled = true;
