@@ -8,6 +8,5 @@ $(function () {
 });
 
 function randRoomRedirect(){
-    console.log("asdfasdf");
     location.href = '/room/' + ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)] + "-" + NOUNS[Math.floor(Math.random() * NOUNS.length)];
 }

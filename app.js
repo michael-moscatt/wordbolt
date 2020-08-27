@@ -15,6 +15,8 @@ var util = require('util');
 var rooms = {}; // roomName -> room
 tree = {};
 
+buildTree('twl2.txt');
+
 const STANDARD_DICE = [
     ['A','E','D','N','N','N'],
     ['H','O','R','D','L','N'],
@@ -45,8 +47,6 @@ const STANDARD_DICE = [
 
 const ROUND_LENGTH = 180;
 
-buildTree('twl2.txt');
-
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, '/client/index.html')));
 
 app.get(/\/room\/.+/, (req, res) => res.sendFile(path.join(__dirname, '/client/room.html')));
@@ -66,10 +66,12 @@ io.on('connection', function (socket) {
                 'host': user,
                 'name': roomName,
                 'state': 'ready',
-                'board': [],
+                'board': {
+                    'letters': [],
+                    'solution': []
+                },
                 'timer': false,
                 'time': false,
-                'solution': []
             };
         }
         room = rooms[roomName];
@@ -79,7 +81,7 @@ io.on('connection', function (socket) {
             // Get user up to speed who joins mid-round
             if(room.state == 'playing' || room.state == 'paused'){
                 socket.emit('game-state', room.state);
-                socket.emit('board', room.board);
+                socket.emit('board', room['board']['letters']);
                 user.socket.emit('time', room.time);
             }
         }
@@ -112,7 +114,7 @@ io.on('connection', function (socket) {
 
     socket.on('request-board', function() {
         if(room.state == 'playing'){
-            socket.emit('board', room.board);
+            socket.emit('board', room['board']['letters']);
         }
     });
 
@@ -174,10 +176,12 @@ function createRoom(user){
         'host': user,
         'name': false,
         'state': 'ready',
-        'board': [],
+        'board': {
+            'letters': [],
+            'solution': []
+        },
         'timer': false,
         'time': false,
-        'solution': []
     };
     return room;
 }
@@ -210,15 +214,14 @@ function broadcastScorecard(room) {
 // Start the round for the given room: Broadcasts board, resets wordlists
 function startRound(room) {
     console.log("Room '%s': Round started", room.name);
-    room.board = generateBoardArray(STANDARD_DICE);
+    room['board']['letters'] = generateBoardArray(STANDARD_DICE);
     room['users'].forEach(function(user){
-        user.socket.emit('board', room.board);
+        user.socket.emit('board', room['board']['letters']);
         user.wordList = [];
     });
-
-    room.solution = generateSolution(room.board);
-    // console.log("Solution");
-    // console.log(JSON.stringify(room.solution, null, 4));
+    generateSolution(room['board']);
+    console.log("Solution");
+    console.log(JSON.stringify(sortLengthAlpha(room['board']['solution']), null, 4));
     room.time = ROUND_LENGTH;
     room['users'].forEach(function(user){
         user.socket.emit('time', room.time);
@@ -283,7 +286,7 @@ function generateResult(room){
     // Add legal words found by players
     room['users'].forEach(function(user){
         user.wordList.forEach(function(word){
-            if(solution.includes(word)){
+            if(room['board']['solution'].includes(word)){
                 pooledFoundWords.push(word);
             }
         });
@@ -296,7 +299,7 @@ function generateResult(room){
         userResult['name'] = user.username;
         userResult['wordsUnsorted'] = [];
         user.wordList.forEach(function(word){
-            if(room['solution'].includes(word)){
+            if(room['board']['solution'].includes(word)){
                 var count = 0;
                 validWords++;
                 for (var i = 0; i < pooledFoundWords.length; i++) {
@@ -381,28 +384,21 @@ function buildTree(filename){
     fs.readFile('server/' + filename, "utf8", function (err, data) {
         var words = data.split("\n");
         words.pop(); // remove blank word from trailing newline
-        var prefix = '';
-        var  i;
-        for(i = 0; i < words.length; i++){
-            var word = words[i];
-            if(word.substring(0,4) === prefix) {
-                buildTreeHelperSameRoot(tree[word.substring(0,4)], word, 4);
+
+        words.forEach(function(word){
+            var start = word.charAt(0);
+            if (tree.hasOwnProperty(start)) {
+                buildTreeHelperSameRoot(tree[start], word, 1);
             } else {
-                prefix = word.substring(0,4);
-                tree[prefix] = {};
-                if(word.length == 4){
-                    tree[prefix].word = true;
-                } else {
-                    tree[prefix].word = false;
-                    tree[prefix][word[4]] = buildTreeHelper(word, 4);
-                }
+                tree[start] = {
+                    'word': false
+                };
+                tree[start][word.charAt(1)] = buildTreeHelper(word, 1);
             }
-        
-        }
+        });
         console.log("Tree Built.");
-        // str = JSON.stringify(tree, null, 4);
-        // console.log(str);
-    })
+        // console.log(JSON.stringify(tree, null, 4));
+    });
 }
 
 function buildTreeHelper(word, index){
@@ -412,77 +408,69 @@ function buildTreeHelper(word, index){
         return suffix;
     } else {
         suffix['word'] = false;
-        suffix[word[index + 1]] = buildTreeHelper(word, index + 1);
+        suffix[word.charAt(index + 1)] = buildTreeHelper(word, index + 1);
         return suffix;
     }
 }
 
+// Index is the next index to check and build
 function buildTreeHelperSameRoot(section, word, index){
-    if(word[index] in section){
-        buildTreeHelperSameRoot(section[word[index]], word, index + 1)
-    } else{
-        section[word[index]] = buildTreeHelper(word, index);
+    if(index >= word.length - 1){
+        // Check for existance of extended section
+        if(section.hasOwnProperty(word.charAt(index))){
+            section[word.charAt(index)].word = true;
+        } else {
+            section[word.charAt(index)] = {
+                'word': true
+            }
+        }
+    } else {
+        if(section.hasOwnProperty(word.charAt(index))){
+            buildTreeHelperSameRoot(section[word.charAt(index)], word, index + 1)
+        } else{
+            section[word.charAt(index)] = buildTreeHelper(word, index);
+        }
     }
 }
 
 // Generates all legal words for the given board
 function generateSolution(board){
-    solution = [];
-    var i;
-    for(i = 0; i < board.length; i++){
-        var visitedIndices = [i];
-        var string = board[i];
-        generateSolutionHelper(i, visitedIndices, string, board);
+    for(var i = 0; i < board['letters'].length; i++){
+        generateSolutionHelper(i, [i],  board['letters'][i], board);
     }
-    return solution;
 }
 
 function generateSolutionHelper(currentIndex, visited, string, board){
-    // console.log("---execution of helper for %s---", string)
-    if(string.length > 3){
-        if(string.length == 4 && !tree.hasOwnProperty(string.substring(0,4))){
-            // console.log("Root %s unfound", string);
-            return false;
-        }
-        var rootSection = tree[string.substring(0, 4)];
-        var i;
-        for(i = 3; i < string.length; i++){
-            // console.log("started iteration through word %s", string);
-            if(i == string.length - 1){
-                // console.log("Reached end of word %s", string);
-                if(rootSection['word'] == true && !solution.includes(string)){
-                    solution.push(string);
-                    // console.log("Pushed %s to solution", string);
-                }
-                if(Object.keys(rootSection).length == 1){
-                    // console.log("No more words spellable with this stem: %s", string);
-                    return false;
-                }
-            } else{
-                if(!rootSection.hasOwnProperty(string[i + 1])){
-                    // console.log("No rootsection: %s", string);
-                    return false;
-                }
-                rootSection = rootSection[string[i + 1]];
+    var rootSection = tree[string.charAt(0)];
+    for (var i = 0; i < string.length; i++) {
+        if (i == string.length - 1) {
+            // Reached the terminus of the string
+            if (rootSection['word'] == true && !board['solution'].includes(string)) {
+                board['solution'].push(string);
             }
+            if (Object.keys(rootSection).length == 1) {
+                // No further exploration of this root necessary
+                return false;
+            }
+        } else {
+            // Check to see if the next substring can lead to a word
+            if (!rootSection.hasOwnProperty(string[i + 1])) {
+                return false;
+            }
+            rootSection = rootSection[string[i + 1]];
         }
     }
 
+    // Figure out which spots on the board to visit next
     indices = nextInds(currentIndex, visited);
-
-    // console.log("Generated next indices for %s", string);
-    // console.log(JSON.stringify(indices));
-
     indices.forEach(function(nextIndex){
-        // console.log("Exploring index %i", nextIndex);
-        // console.log(JSON.stringify(board, null, 4));
         var updatedVisited = Array.from(visited);
         updatedVisited.push(nextIndex);
-        generateSolutionHelper(nextIndex, updatedVisited, string + board[nextIndex], board);
+        generateSolutionHelper(nextIndex, updatedVisited, string + board['letters'][nextIndex], board);
     });
 }
 
-// Finds the indices that must be visited next
+// Finds the indices that must be visited next, taking into account visited indices
 function nextInds(current, visited){
     var upperLeft = [1, 6, 5];
     var upperRight = [9, 8, 3];
@@ -526,7 +514,7 @@ function sortLengthAlpha(list){
         }
     });
     var i;
-    for(i = longest; i > 3; i--){
+    for(i = longest; i > 0; i--){
         var listAtThisLetter = [];
         list.forEach(function(word){
             if(word.length == i){
@@ -540,26 +528,3 @@ function sortLengthAlpha(list){
     }
     return sortedList;
 }
-
-// Cut all <4 letter words out
-// function cutfour() {
-//     fs.readFile('server/twl.txt', "utf8", function (err, data) {
-//         var string = "";
-//         var words = data.split("\r\n");
-//         words.forEach(function (word) {
-//             if (word.length > 3) {
-//                 var wordUpper = word.toUpperCase();
-//                 string = string + wordUpper + '\n';
-//                 console.log("Pushed %s", wordUpper);
-//             }
-//         });
-//         fs.writeFile('server/twl2.txt', string,
-//             function (err) {
-//                 if (err)
-//                     console.log(err);
-//                 else
-//                     console.log('Write operation complete.');
-//             }
-//         );
-//     })
-// }
