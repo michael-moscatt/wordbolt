@@ -1,5 +1,5 @@
-const ADJECTIVES = ['metal', 'plastic', 'sleek', 'modern'];
-const NOUNS = ['stapler', 'pen', 'pencil', 'glue'];
+const ADJECTIVES = ['metal', 'plastic', 'sleek', 'modern', 'transparent'];
+const NOUNS = ['stapler', 'pen', 'pencil', 'ruler', 'eraser', 'canvas'];
 
 $(function () {
     document.getElementById("new-room").onclick = function() {
