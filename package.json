@@ -1,7 +1,7 @@
 {
   "name": "word-bolt",
   "version": "1.0.0",
-  "description": "",
+  "description": "Multiplayer word finding game",
   "main": "app.js",
   "scripts": {
     "start": "node app.js"
