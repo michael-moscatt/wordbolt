@@ -35,7 +35,7 @@
 
 <body>
     <nav class="navbar navbar-expand-sm primary-mid">
-        <a class="navbar-brand" href="#" style="font-weight: bold;">
+        <a class="navbar-brand" href="/" style="font-weight: bold;">
            Word Bolt
            <i class="fas fa-bolt"></i>
         </a>
@@ -47,17 +47,19 @@
             <div class="navbar-nav">
                 <a class="nav-item nav-link" href="#" onclick="randRoomRedirect()">Game</a>
                 <a class="nav-item nav-link" href="/tutorial.html">Tutorial</a>
-                <a class="nav-item nav-link" href="/about.html">About</a>
+                <a class="nav-item nav-link" href="#!">About</a>
             </div>
         </div>
     </nav>
-    <div class="container" style="height: 50vh;">
-        <div class="row h-100">
-            <div class="col-12 my-auto d-flex justify-content-center">
-                <button id="new-room" class="primary-mid button">
-                    Play
-                    <i class="fas fa-bolt"></i>
-                </button>
+    <div class="container">
+        <div class="row d-flex justify-content-center">
+            <div class="col-12 col-xl-8 mt-5" id="about">
+                <div class="card mx-auto light-grey-border shadow">
+                    <div class="card-body grey-ultralight">
+                        <h5 class="text-center">About</h5>
+                        <p>WordBolt was created by Michael Moscatt in 2020. Its aim is to connect friends who share a love of word games. This site's code is open source and available on <a href="https://github.com/michael-moscatt/wordbolt">Github</a>. For questions please email <a href="mailto:michael.moscatt@gmail.com">michael.moscatt@gmail.com</a>. Special thanks to my diligent playtester J.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
