@@ -10,7 +10,7 @@ Try it out [here](http://wordbolt.herokuapp.com/)
 
 The backend uses Node.js with Express.js, and the app uses Socket.IO for client/server communication. The frontend uses Bootstrap and jQuery.
 
-### Installing
+## Installing
 
 To build the site, first install Node.js and npm. Then run the following in the root folder:
 
