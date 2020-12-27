@@ -220,7 +220,7 @@ function startRound(room) {
         user.wordList = [];
     });
     generateSolution(room['board']);
-    console.log("Solution");
+    console.log("Solution:");
     console.log(JSON.stringify(sortLengthAlpha(room['board']['solution']), null, 4));
     room.time = ROUND_LENGTH;
     room['users'].forEach(function(user){
@@ -382,7 +382,7 @@ function generateResult(room){
 // Generate tree from wordlist
 function buildTree(filename){
     fs.readFile('server/' + filename, "utf8", function (err, data) {
-        var words = data.split("\n");
+        var words = data.split(/\r?\n/);
         words.pop(); // remove blank word from trailing newline
 
         words.forEach(function(word){
