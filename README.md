@@ -4,7 +4,7 @@
 
 [Wordbolt](http://wordbolt.herokuapp.com/) is a online, multiplayer version of the Allan Turoff word game Boggle. The goal of the game is score as many points as possible in three minutes by finding words in a 5x5 grid.
 
-Try it out [here](http://wordbolt.herokuapp.com/) Please note that this is hosted on Heroku, so allow around 10 seconds for dynos to spin up.
+Try it out [here](http://wordbolt.herokuapp.com/). Please note that this is hosted on Heroku, so allow around 10 seconds for dynos to spin up.
 
 ## Software
 
