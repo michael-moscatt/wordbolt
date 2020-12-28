@@ -23,4 +23,4 @@ The site is then accessible through the browser at 'localhost:3000'
 
 ## Acknowledgments
 
-* Special thanks to J for playtesting
+* Special thanks to J for playtesting and wording
