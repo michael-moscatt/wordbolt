@@ -1,5 +1,5 @@
-const ANIMALS = ['cat','dog','fish'];
-const ADJECTIVES = ['big','small','friendly'];
+const ANIMALS = ['cat','dog','fish','bear','eagle'];
+const ADJECTIVES = ['big','small','friendly','fast'];
 
 $(function () {
   var socket = io();
@@ -153,7 +153,7 @@ $(function () {
         $that = $(this);
         $that.parent().remove();
       });
-      $("#found-words").prepend('<li><span class="word">' + word + '</span><div class="float-right my-badge delete-word shadow-sm" onmouseover="">x</div></li>');
+      $("#found-words").prepend('<li><span class="word">' + word + '</span><div class="float-right my-badge delete-word shadow-sm" onmouseover="">X</div></li>');
     }
   }
 

@@ -140,9 +140,10 @@ input:focus::placeholder {
 }
 
 .delete-word {
+    font-size: 13px;
     cursor: pointer;
     background-color: #f2c4eb;
-    padding: 0px 8px;
+    padding: 0px 6px;
     margin: 0px 0px;
 }
 
@@ -280,4 +281,8 @@ input:focus::placeholder {
 
 .shrink-icon {
     font-size: 14px;
+}
+
+.tutorial-heading {
+    color: #6c48b3;
 }
