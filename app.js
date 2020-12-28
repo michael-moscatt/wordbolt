@@ -49,6 +49,8 @@ const ROUND_LENGTH = 180;
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, '/client/index.html')));
 
+app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, '/extra/favicon.ico')));
+
 app.get(/\/room\/.+/, (req, res) => res.sendFile(path.join(__dirname, '/client/room.html')));
 
 app.use(express.static(path.join(__dirname, 'client')));
